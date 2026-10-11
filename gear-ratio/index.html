@@ -168,7 +168,7 @@
           <div class="f" id="encoderReadoutWrap"><span>인코더 분해능</span><div class="kv-static" id="encoderReadout">4,194,304 pulse/rev</div></div>
         </div>
         <label class="f" id="manualEncoderRow" hidden>인코더 분해능 (수동, pulse/rev)
-          <input type="number" id="manualEncoderInput" placeholder="인코더 분해능 입력 (예시:4194304)" inputmode="numeric">
+          <input type="text" id="manualEncoderInput" placeholder="인코더 분해능 입력 (예시:4194304)" inputmode="numeric">
         </label>
 
         <label class="f">기구 유형
@@ -179,13 +179,13 @@
         </label>
 
         <label class="f" id="ballRow">볼스크류 리드 (Pb)
-          <input type="number" id="leadInput" placeholder="볼스크류 리드를 입력하세요 (예시:10)" inputmode="decimal">
+          <input type="text" id="leadInput" placeholder="볼스크류 리드를 입력하세요 (예시:10)" inputmode="decimal">
         </label>
         <div id="rotaryRow" hidden style="display:flex;flex-direction:column;gap:8px;">
           <div class="row">
             <div class="f"><span>부하 이동량</span><div class="kv-static" style="font-size:15px;">360 deg/rev</div></div>
             <label class="f">인덱스 분할수
-              <input type="number" id="divisorInput" value="1" inputmode="numeric">
+              <input type="text" id="divisorInput" value="1" inputmode="numeric">
             </label>
           </div>
           <div class="divhint" id="divisorHint" hidden></div>
@@ -208,21 +208,21 @@
             <div class="f" id="cmdUnitHintWrap" hidden><span>&nbsp;</span><div class="unit-hint" id="cmdUnitHint"></div></div>
           </div>
           <label class="f" id="cmdUnitManualRow" hidden>지령 단위 값
-            <input type="number" id="cmdUnitManualInput" placeholder="1" inputmode="decimal">
+            <input type="text" id="cmdUnitManualInput" placeholder="1" inputmode="decimal">
           </label>
         </div>
         <label class="f" id="cmdPulsesBlock">1회전당 펄스 수 (Ap)
-          <input type="number" id="cmdPulsesInput" value="10000" inputmode="numeric">
+          <input type="text" id="cmdPulsesInput" value="10000" inputmode="numeric">
         </label>
 
         <label class="f">목표 모터 속도 (선택, rpm)
-          <input type="number" id="targetRpmInput" value="3000" placeholder="목표 모터 회전수 (예시:3000)" inputmode="numeric">
+          <input type="text" id="targetRpmInput" value="3000" placeholder="목표 모터 회전수 (예시:3000)" inputmode="numeric">
         </label>
         <div class="hint0">미입력 시 정격 회전수 기준으로 각 출력원 가능 여부를 판정합니다</div>
 
         <div class="row">
-          <label class="f">정격 회전수 (rpm)<input type="number" id="ratedRpmInput" value="3000" inputmode="numeric"></label>
-          <label class="f">최대 회전수 (rpm)<input type="number" id="maxRpmInput" value="6000" inputmode="numeric"></label>
+          <label class="f">정격 회전수 (rpm)<input type="text" id="ratedRpmInput" value="3000" inputmode="numeric"></label>
+          <label class="f">최대 회전수 (rpm)<input type="text" id="maxRpmInput" value="6000" inputmode="numeric"></label>
         </div>
 
         <div class="sec-head">
@@ -230,8 +230,8 @@
           <button type="button" class="help-btn" id="reductionHelpBtn" aria-label="감속비 도움말">?</button>
         </div>
         <div class="row">
-          <label class="f">출력<input type="number" id="reductionLoadInput" value="1" inputmode="numeric"></label>
-          <label class="f">모터<input type="number" id="reductionMotorInput" value="1" inputmode="numeric"></label>
+          <label class="f">출력<input type="text" id="reductionLoadInput" value="1" inputmode="numeric"></label>
+          <label class="f">모터<input type="text" id="reductionMotorInput" value="1" inputmode="numeric"></label>
         </div>
 
         <div class="sec-head">
@@ -239,8 +239,8 @@
           <button type="button" class="help-btn" id="gearHelpBtn" aria-label="기어비 도움말">?</button>
         </div>
         <div class="row">
-          <label class="f">구동 잇수<input type="number" id="gearDriveInput" value="1" inputmode="numeric"></label>
-          <label class="f">부하 잇수<input type="number" id="gearLoadInput" value="1" inputmode="numeric"></label>
+          <label class="f">구동 잇수<input type="text" id="gearDriveInput" value="1" inputmode="numeric"></label>
+          <label class="f">부하 잇수<input type="text" id="gearLoadInput" value="1" inputmode="numeric"></label>
         </div>
       </div>
 
@@ -344,6 +344,8 @@
   </div>
 </div>
 
+<script src="../assets/vendor/decimal.js"></script>
+<script src="../assets/decimal-input.js"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -432,20 +434,36 @@
   // ── 숫자/분수 유틸 (BigInt 정확 연산 — Kotlin BigInteger/BigDecimal 이식) ──
   function gcdBig(a, b) { if (a < 0n) a = -a; if (b < 0n) b = -b; while (b) { var t = a % b; a = b; b = t; } return a || 1n; }
   function reduceFrac(n, d) { if (d < 0n) { n = -n; d = -d; } var g = gcdBig(n, d); return [n / g, d / g]; }
-  function toFraction(str) {
-    var parts = str.trim().split(".");
-    var ip = parts[0] || "0", fp = parts[1] || "";
-    var combined = (ip + fp).replace(/^0+(?=\d)/, "");
-    if (combined === "") combined = "0";
-    return [BigInt(combined), 10n ** BigInt(fp.length)];
-  }
-  function isPosDecimal(s) { return /^\d+(\.\d+)?$/.test(s) && parseFloat(s) > 0; }
+  var N = CalcDecimal, D = N.D;
+  function decimalBig(v) { return new D(v.toString()); }
+  function ratio(n, d) { return decimalBig(n).div(decimalBig(d)); }
+  function toFraction(str) { return N.fraction(str); }
+  function isPosDecimal(s) { var v = N.parse(s); return v !== null && v.gt(0); }
   function parsePosIntDefault(s, def) {
-    var t = (s || "").trim();
-    if (t === "") return def;
-    if (!/^\d+$/.test(t)) return null;
-    var v = BigInt(t);
-    return v > 0n ? v : null;
+    var t = (s || '').trim();
+    if (t === '') return def;
+    var v = N.long(t);
+    return v !== null && v > 0n ? v : null;
+  }
+  // RPM fields use a finite floating-input range in the app, rather than DecimalBounds.
+  function parseRpm(text) {
+    var t = String(text || '').trim(), v;
+    var hex = /^([+-]?)0[xX](?:([0-9a-fA-F]+)(?:\.([0-9a-fA-F]*))?|\.([0-9a-fA-F]+))[pP]([+-]?\d+)[fFdD]?$/.exec(t);
+    try {
+      if (hex) {
+        var tail = hex[3] == null ? (hex[4] || '') : hex[3];
+        var coefficient = BigInt('0x' + ((hex[2] || '') + tail));
+        if (coefficient === 0n || hex[1] === '-') return null;
+        var exponent = BigInt(hex[5]) - 4n * BigInt(tail.length);
+        var adjusted = exponent + BigInt(coefficient.toString(2).length - 1);
+        if (adjusted > 1023n || adjusted < -1075n) return null;
+        v = decimalBig(coefficient).times(new D(2).pow(exponent.toString()));
+      } else {
+        if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?[fFdD]?$/.test(t)) return null;
+        v = new D(t.replace(/[fFdD]$/, ''));
+      }
+    } catch (_) { return null; }
+    return v.gt('2.4703282292062327208828439643411068618252990130716e-324') && v.lt('1.7976931348623158079372897140530341507993413271004e308') ? v : null;
   }
   function fmtInt(v) {
     var s = (typeof v === "bigint") ? v.toString() : String(v);
@@ -514,7 +532,7 @@
       return mechResolution.toFixed(6) + " " + rawUnit;
     }
     var unit, scaled;
-    if (mech === "BALL_SCREW") { unit = "μm"; scaled = mechResolution * 1000; }
+    if (mech === "BALL_SCREW") { unit = "μm"; scaled = mechResolution.times(1000); }
     else { scaled = mechResolution; unit = commandUnitIndex === 1 ? "0.1deg" : commandUnitIndex === 2 ? "0.001deg" : "deg"; }
     return scaled.toFixed(6) + " " + unit;
   }
@@ -543,8 +561,8 @@
     if (manual) {
       var pt = el.manualEncoderInput.value.trim();
       if (pt === "") { showPending(); return; }
-      if (!/^\d+$/.test(pt) || BigInt(pt) <= 0n) { showError("인코더 분해능이 유효하지 않습니다 (양의 정수)"); return; }
-      pe = BigInt(pt);
+      if (parsePosIntDefault(pt, null) === null) { showError("인코더 분해능이 유효하지 않습니다 (양의 정수)"); return; }
+      pe = parsePosIntDefault(pt, null);
     } else pe = info.pe;
 
     // 2) 지령 사양 (지령단위 Δl 또는 지령펄스 Ap) — Kotlin recompute() 순서 동일
@@ -554,8 +572,8 @@
       cmdUnitManualFlag = true;
       var apt = el.cmdPulsesInput.value.trim();
       if (apt === "") { showPending(); return; }
-      if (!/^\d+$/.test(apt) || BigInt(apt) <= 0n) { showError("1회전당 펄스 수(Ap)를 올바르게 입력하세요"); return; }
-      ap = BigInt(apt);
+      if (parsePosIntDefault(apt, null) === null) { showError("1회전당 펄스 수(Ap)를 올바르게 입력하세요"); return; }
+      ap = parsePosIntDefault(apt, null);
     } else if (el.cmdUnitSelect.value === "manual") {
       cmdUnitManualFlag = true;
       var cut = el.cmdUnitManualInput.value.trim();
@@ -582,7 +600,7 @@
       var dv = parsePosIntDefault(el.divisorInput.value, 1n);
       if (dv === null) { showError("인덱스 분할수는 1 이상의 정수여야 합니다"); return; }
       divisor = dv;
-      if (dv > 1n) { el.divisorHint.hidden = false; el.divisorHint.textContent = "L_load = 360 / " + dv.toString() + " = " + (360 / Number(dv)).toFixed(4) + " deg/rev"; }
+      if (dv > 1n) { el.divisorHint.hidden = false; el.divisorHint.textContent = "L_load = 360 / " + dv.toString() + " = " + new D(360).div(decimalBig(dv)).toFixed(4) + " deg/rev"; }
       else el.divisorHint.hidden = true;
     }
 
@@ -612,7 +630,11 @@
     var withinRange = cmx >= 1n && cmx <= info.cmxMax && cdv >= 1n && cdv <= info.cdvMax;
     var apFrac = reduceFrac(pe * cdv, cmx); var apNum = apFrac[0], apDen = apFrac[1];
     var alFrac = reduceFrac(ltNum * rlTotal, ltDen * rmTotal * divisor); var alNum = alFrac[0], alDen = alFrac[1];
-    var mechResolution = (Number(ltNum) / Number(ltDen)) * Number(rlTotal) / (Number(pe) * Number(rmTotal) * Number(divisor));
+    var max62 = 4611686018427387903n;
+    if ([cmx, cdv, apNum, apDen, alNum, alDen].some(function (v) { return v > max62; })) {
+      showError('계산값이 표현 범위를 초과했습니다. 입력값을 줄이세요.'); return;
+    }
+    var mechResolution = ratio(ltNum, ltDen).times(decimalBig(rlTotal)).div(decimalBig(pe).times(decimalBig(rmTotal)).times(decimalBig(divisor)));
     var commandUnitIndex = (!isPulses && el.cmdUnitSelect.value !== "manual") ? (parseInt(el.cmdUnitSelect.value, 10) || 0) : 0;
 
     render({
@@ -642,58 +664,58 @@
 
     // 지령단위 역산 (지령펄스 모드)
     if (r.isPulses && r.apNum > 0n) {
-      var dl = (Number(r.alNum) / Number(r.alDen)) / (Number(r.apNum) / Number(r.apDen));
-      var dlText = r.mech === "ROTARY" ? dl.toFixed(6) + " deg/pulse" : (dl * 1000).toFixed(4) + " μm/pulse";
+      var dl = ratio(r.alNum, r.alDen).div(ratio(r.apNum, r.apDen));
+      var dlText = r.mech === "ROTARY" ? dl.toFixed(6) + " deg/pulse" : dl.times(1000).toFixed(4) + " μm/pulse";
       el.derivedUnitLine.hidden = false; el.derivedUnitLine.textContent = "지령단위(역산): " + dlText;
     } else el.derivedUnitLine.hidden = true;
 
     el.mechResLine.textContent = "분해능: 1펄스 = " + formatMechRes(r.mechResolution, r.mech, r.commandUnitIndex, r.cmdUnitManualFlag);
 
     var apInt = r.apDen === 1n;
-    var apText = apInt ? fmtInt(r.apNum) : (fmtInt(r.apNum) + " / " + fmtInt(r.apDen) + " ≈ " + (Number(r.apNum) / Number(r.apDen)).toFixed(3));
+    var apText = apInt ? fmtInt(r.apNum) : (fmtInt(r.apNum) + " / " + fmtInt(r.apDen) + " ≈ " + ratio(r.apNum, r.apDen).toFixed(3));
     el.cmdPulsesLine.textContent = "모터 1회전당 지령 펄스: " + apText;
     el.cmdPulsesWarn.hidden = apInt;
     el.cmdPulsesWarn.textContent = "정수가 아님: QD75/RD75 '1회전당 펄스 수'에 직접 기입 불가, 전자기어(CMX/CDV) 사용";
 
     var alUnit = r.mech === "ROTARY" ? "deg" : "mm";
     var alInt = r.alDen === 1n;
-    var alText = alInt ? (fmtInt(r.alNum) + " " + alUnit) : (fmtInt(r.alNum) + " / " + fmtInt(r.alDen) + " ≈ " + (Number(r.alNum) / Number(r.alDen)).toFixed(4) + " " + alUnit);
+    var alText = alInt ? (fmtInt(r.alNum) + " " + alUnit) : (fmtInt(r.alNum) + " / " + fmtInt(r.alDen) + " ≈ " + ratio(r.alNum, r.alDen).toFixed(4) + " " + alUnit);
     el.travelPerRevLine.textContent = "모터 1회전당 이동량: " + alText;
 
     var speedUnit = r.mech === "ROTARY" ? "deg/s" : "mm/s";
-    var ratedRpm = parseFloat(el.ratedRpmInput.value);
-    if (isFinite(ratedRpm) && ratedRpm > 0) {
-      var v1 = ratedRpm * Number(r.alNum) / Number(r.alDen) / 60;
+    var ratedRpm = parseRpm(el.ratedRpmInput.value);
+    if (ratedRpm !== null) {
+      var v1 = ratedRpm.times(decimalBig(r.alNum)).div(decimalBig(r.alDen)).div(60);
       el.ratedSpeedLine.hidden = false;
-      el.ratedSpeedLine.textContent = "정격 속도 (" + fmtInt(Math.round(ratedRpm)) + " rpm): " + v1.toFixed(2) + " " + speedUnit;
+      el.ratedSpeedLine.textContent = "정격 속도 (" + fmtInt(ratedRpm.toDecimalPlaces(0).toFixed()) + " rpm): " + v1.toFixed(2) + " " + speedUnit;
     } else el.ratedSpeedLine.hidden = true;
-    var maxRpmV = parseFloat(el.maxRpmInput.value);
-    if (isFinite(maxRpmV) && maxRpmV > 0) {
-      var v2 = maxRpmV * Number(r.alNum) / Number(r.alDen) / 60;
+    var maxRpmV = parseRpm(el.maxRpmInput.value);
+    if (maxRpmV !== null) {
+      var v2 = maxRpmV.times(decimalBig(r.alNum)).div(decimalBig(r.alDen)).div(60);
       el.maxSpeedLine.hidden = false;
-      el.maxSpeedLine.textContent = "최대 속도 (" + fmtInt(Math.round(maxRpmV)) + " rpm): " + v2.toFixed(2) + " " + speedUnit;
+      el.maxSpeedLine.textContent = "최대 속도 (" + fmtInt(maxRpmV.toDecimalPlaces(0).toFixed()) + " rpm): " + v2.toFixed(2) + " " + speedUnit;
     } else el.maxSpeedLine.hidden = true;
 
     // 위치결정 모듈 — Δl(도메인 단위) 결정 (지령펄스 모드=Al/Ap 역산 / 지령단위 모드=cuNum/cuDen)
     var deltaL = r.isPulses
-      ? (Number(r.alNum) / Number(r.alDen)) / (Number(r.apNum) / Number(r.apDen))
-      : (Number(r.cuNum) / Number(r.cuDen));
+      ? ratio(r.alNum, r.alDen).div(ratio(r.apNum, r.apDen))
+      : ratio(r.cuNum, r.cuDen);
 
-    var targetRaw = parseFloat(el.targetRpmInput.value);
-    var targetRpm = (isFinite(targetRaw) && targetRaw > 0) ? targetRaw
-      : (isFinite(ratedRpm) && ratedRpm > 0 ? ratedRpm : null);
+    var targetRaw = parseRpm(el.targetRpmInput.value);
+    var targetRpm = (targetRaw !== null) ? targetRaw
+      : (ratedRpm !== null ? ratedRpm : null);
 
     modEl.forEach(function (m) {
-      var maxRpmModule = Number(m.maxPps) * 60 * Number(r.apDen) / Number(r.apNum);
-      var maxSpeed = Number(m.maxPps) * deltaL;
+      var maxRpmModule = decimalBig(m.maxPps).times(60).times(decimalBig(r.apDen)).div(decimalBig(r.apNum));
+      var maxSpeed = decimalBig(m.maxPps).times(deltaL);
       m.rpm.textContent = maxRpmModule.toFixed(1) + " rpm";
       m.speed.textContent = maxSpeed.toFixed(2) + " " + speedUnit;
       if (targetRpm !== null) {
-        var reqPps = (Number(r.apNum) / Number(r.apDen)) * targetRpm / 60;
-        var feasible = reqPps <= Number(m.maxPps);
+        var reqPps = ratio(r.apNum, r.apDen).times(targetRpm).div(60);
+        var feasible = reqPps.lte(decimalBig(m.maxPps));
         m.badge.hidden = false; m.badge.textContent = feasible ? "가능" : "불가";
         m.badge.className = "badge " + (feasible ? "good" : "bad");
-        m.pps.hidden = false; m.pps.textContent = "필요 " + fmtInt(Math.trunc(reqPps)) + " pps";
+        m.pps.hidden = false; m.pps.textContent = "필요 " + fmtInt(D.min(reqPps.trunc(), new D("9223372036854775807")).toFixed()) + " pps";
       } else { m.badge.hidden = true; m.pps.hidden = true; }
     });
   }
@@ -713,19 +735,82 @@
    el.reductionMotorInput, el.reductionLoadInput, el.gearDriveInput, el.gearLoadInput
   ].forEach(function (e) { e.addEventListener("input", compute); });
 
-  function flash(btn, text) { var orig = btn.textContent; btn.textContent = text; setTimeout(function () { btn.textContent = orig; }, 900); }
-  el.copyCmxBtn.addEventListener("click", function () {
-    if (lastCmx === null) return;
-    var text = lastCmx.toString();
-    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(function () {});
-    flash(el.copyCmxBtn, "복사됨 ✓");
-  });
-  el.copyCdvBtn.addEventListener("click", function () {
-    if (lastCdv === null) return;
-    var text = lastCdv.toString();
-    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(function () {});
-    flash(el.copyCdvBtn, "복사됨 ✓");
-  });
+  function clearCopyFailure() {
+    var box = document.getElementById("clipboardFailure");
+    if (box) box.remove();
+  }
+  function showCopyFailure(text, anchor) {
+    clearCopyFailure();
+    var box = document.createElement("div");
+    box.id = "clipboardFailure";
+    box.setAttribute("role", "status");
+    box.style.color = "var(--muted)";
+    var message = document.createElement("p");
+    message.textContent = "복사하지 못했습니다. 아래 값을 직접 선택하여 복사하세요.";
+    var value = document.createElement("textarea");
+    value.value = text;
+    value.readOnly = true;
+    value.setAttribute("aria-label", "직접 복사할 값");
+    value.style.width = "100%";
+    value.style.fontFamily = "var(--mono)";
+    value.style.color = "var(--ink)";
+    value.style.background = "var(--surface)";
+    box.appendChild(message);
+    box.appendChild(value);
+    var screen = anchor && anchor.closest("#screenTable, #screenKeypad, .screen");
+    (screen || document.body).appendChild(box);
+    value.focus();
+    value.select();
+  }
+  function fallbackCopy(text) {
+    var previous = document.activeElement;
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.readOnly = true;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    var copied = false;
+    try {
+      ta.focus();
+      ta.select();
+      copied = document.execCommand("copy") === true;
+    } catch (e) {
+      copied = false;
+    } finally {
+      ta.remove();
+      if (previous && previous.isConnected) { try { previous.focus(); } catch (e) {} }
+    }
+    return copied;
+  }
+  async function writeClipboard(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (e) {
+      // Fall through to the checked legacy copy path.
+    }
+    return fallbackCopy(text);
+  }
+  function flash(btn, text) {
+    if (btn._copyLabel === undefined) btn._copyLabel = btn.textContent;
+    if (btn._copyRestore) clearTimeout(btn._copyRestore);
+    btn.textContent = text;
+    btn._copyRestore = setTimeout(function () { btn.textContent = btn._copyLabel; }, 900);
+  }
+  async function copyGearValue(value, btn) {
+    if (value === null) return;
+    clearCopyFailure();
+    if (btn._copyRestore) clearTimeout(btn._copyRestore);
+    if (btn._copyLabel !== undefined) btn.textContent = btn._copyLabel;
+    var text = value.toString();
+    if (await writeClipboard(text)) flash(btn, "복사했습니다. ✓");
+    else showCopyFailure(text, btn);
+  }
+  el.copyCmxBtn.addEventListener("click", function () { copyGearValue(lastCmx, el.copyCmxBtn); });
+  el.copyCdvBtn.addEventListener("click", function () { copyGearValue(lastCdv, el.copyCdvBtn); });
 
   // ── 초기화 ──
   rebuildCmdUnitOptions();

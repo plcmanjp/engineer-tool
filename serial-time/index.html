@@ -295,8 +295,15 @@
   </div>
 </footer>
 
+<script src="../assets/vendor/decimal.js"></script>
+<script src="../assets/decimal-input.js"></script>
 <script>
 (function () {
+  const N = CalcDecimal;
+  const D = Decimal.clone({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
+  // DecimalBounds admits an exponent span below 2500 digits, including gap-count products.
+  // Exact holds additions/products that the app evaluates without MathContext.
+  const Exact = Decimal.clone({ precision: 2500, rounding: Decimal.ROUND_HALF_UP });
   const MAX_BYTES = 4096;
   const BAUD_PRESETS = [110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, 115200, 230400, 460800, 921600];
 
@@ -376,37 +383,32 @@
 
   // ── 통신속도 파싱 (앱 parseBaudRateBps 동형: 공백·콤마·탭 제거, 1 이상 정수) ──
   function parseBaud(raw) {
-    const cleaned = raw.replace(/[ ,\t]/g, "");
+    const cleaned = raw.replace(/[ ,\t]/g, '');
     if (cleaned.length === 0 || !/^[0-9]+$/.test(cleaned)) return null;
-    const v = parseInt(cleaned, 10);
-    return v >= 1 ? v : null;
+    const v = N.long(cleaned);
+    return v !== null && v >= 1n ? v : null;
   }
 
-  // ── 추가 지연 파싱 (앱 parseOverheadMicros 동형: 빈 입력=0, 0 이상 십진수) ──
+  // Empty overhead means zero; DecimalBounds and sign validation match the app.
   function parseOverhead(raw) {
     const t = raw.trim();
-    if (t.length === 0) return 0;
-    if (!/^[0-9]+(\.[0-9]+)?$/.test(t)) return null;
-    const v = parseFloat(t);
-    return Number.isFinite(v) && v >= 0 ? v : null;
+    if (t.length === 0) return new Exact(0);
+    const v = N.parse(t);
+    return v !== null && v.gte(0) ? new Exact(v.toString()) : null;
   }
+  function roundHalfUp(v, scale) { return N.fixed(v, scale); }
 
-  // ── 표시 반올림 (BigDecimal HALF_UP 동형 — 이진 오차 보정 epsilon) ──
-  function roundHalfUp(v, scale) {
-    const f = Math.pow(10, scale);
-    return (Math.round(v * f * (1 + Number.EPSILON * 4)) / f).toFixed(scale);
-  }
-
-  // ── 단위 자동 선택 (§9: <1µs=ns·<1ms=µs·<1s=ms·<60s=s·이상=분+초) ──
-  function formatMicros(us) {
-    if (us < 1) return roundHalfUp(us * 1000, 3) + " ns";
-    if (us < 1000) return roundHalfUp(us, 3) + " µs";
-    if (us < 1000000) return roundHalfUp(us / 1000, 3) + " ms";
-    if (us < 60000000) return roundHalfUp(us / 1000000, 6) + " s";
-    let minutes = Math.floor(us / 60000000);
-    let seconds = parseFloat(roundHalfUp((us - minutes * 60000000) / 1000000, 3));
-    if (seconds >= 60) { minutes += 1; seconds -= 60; }
-    return minutes + "분 " + seconds.toFixed(3) + "초";
+  // Select the unit before rounding; carry rounded seconds into minutes.
+  function formatMicros(value) {
+    const us = new Exact(value.toString());
+    if (us.lt(1)) return roundHalfUp(us.times(1000), 3) + ' ns';
+    if (us.lt(1000)) return roundHalfUp(us, 3) + ' µs';
+    if (us.lt(1000000)) return roundHalfUp(us.div(1000), 3) + ' ms';
+    if (us.lt(60000000)) return roundHalfUp(us.div(1000000), 6) + ' s';
+    let minutes = us.div(60000000).floor();
+    let seconds = us.minus(minutes.times(60000000)).div(1000000).toDecimalPlaces(3, Decimal.ROUND_HALF_UP);
+    if (seconds.gte(60)) { minutes = minutes.plus(1); seconds = seconds.minus(60); }
+    return minutes.toFixed(0) + '분 ' + roundHalfUp(seconds, 3) + '초';
   }
 
   function uartAbbr(dataBits, parity, stopBits) {
@@ -435,14 +437,9 @@
     const baudErr = $("baudErr"), baudWarn = $("baudWarn");
     let baud = null;
     if ($("baudSel").value === "CUSTOM") baud = parseBaud($("baudCustom").value);
-    else baud = parseInt($("baudSel").value, 10);
-    if (baud === null) {
-      baudErr.hidden = false; baudWarn.hidden = true;
-      clearResult("통신속도를 확인하세요");
-      return;
-    }
-    baudErr.hidden = true;
-    baudWarn.hidden = BAUD_PRESETS.indexOf(baud) !== -1;
+    else baud = parseBaud($("baudSel").value);
+    baudErr.hidden = baud !== null;
+    baudWarn.hidden = baud === null || BAUD_PRESETS.some((v) => BigInt(v) === baud);
 
     // 프레임 파싱 (엄격 — 오류 시 결과 비움)
     const frameErr = $("frameErr"), frameWarn = $("frameWarn"), normEl = $("normHex");
@@ -471,12 +468,16 @@
       frameWarn.hidden = true;
     }
 
+    // Keep normalized frame metadata even when baud parsing fails, as in the app.
+    if (baud === null) { clearResult('통신속도를 확인하세요'); return; }
+
     // 추가 지연
     const advErr = $("advErr");
     const pre = parseOverhead($("preDelay").value);
     const gap = parseOverhead($("gapDelay").value);
     const post = parseOverhead($("postDelay").value);
-    const turn = parseOverhead($("turnDelay").value);
+    const turnApplies = iface === 'RS485' && wireMode === 'TWO';
+    const turn = turnApplies ? parseOverhead($("turnDelay").value) : new Exact(0);
     if (pre === null || gap === null || post === null || turn === null) {
       advErr.hidden = false;
       $("advDetails").open = true;
@@ -489,15 +490,15 @@
     const parityBits = parity === "NONE" ? 0 : 1;
     const bpc = 1 + dataBits + parityBits + stopBits;
     const totalBits = bytes.length * bpc;
-    const bitTimeUs = 1000000 / baud;
-    const charTimeUs = bpc * 1000000 / baud;
-    const wireUs = totalBits * 1000000 / baud;
-    const gapTotal = gap * Math.max(bytes.length - 1, 0);
-    const turnApplies = iface === "RS485" && wireMode === "TWO";
-    const overheadUs = pre + gapTotal + post + (turnApplies ? turn : 0);
-    const totalUs = wireUs + overheadUs;
-    const cps = baud / bpc;
-    const eff = dataBits * 100 / bpc;
+    const baudDecimal = new D(baud.toString());
+    const bitTimeUs = new D(1000000).div(baudDecimal);
+    const charTimeUs = new D(bpc).times(1000000).div(baudDecimal);
+    const wireUs = new D(totalBits).times(1000000).div(baudDecimal);
+    const gapTotal = gap.times(Math.max(bytes.length - 1, 0));
+    const overheadUs = pre.plus(gapTotal).plus(post).plus(turn);
+    const totalUs = new Exact(wireUs.toString()).plus(overheadUs);
+    const cps = baudDecimal.div(bpc);
+    const eff = new D(dataBits).times(100).div(bpc);
 
     // 표시
     const ifaceLabel = (iface === "RS485"
@@ -519,7 +520,7 @@
 
     // RS-485 2선식 전환 지연 0 — 앱과 동일 문구·위치(프레임 아래, 결과 밖)
     const tw = $("turnWarn");
-    if (turnApplies && turn === 0) {
+    if (turnApplies && turn.isZero()) {
       tw.hidden = false;
       tw.textContent = "RS-485 2선식인데 전환 지연이 0입니다. 트랜시버 전환 지연을 확인하세요.";
     } else {
@@ -527,7 +528,7 @@
     }
     // 결과 영역 경고 — 추가 지연 합 초과만 유지
     const rw = $("resultWarn");
-    if (overheadUs > wireUs) { rw.hidden = false; rw.textContent = "추가 지연 합이 순수 전송시간보다 큽니다."; }
+    if (overheadUs.gt(wireUs)) { rw.hidden = false; rw.textContent = "추가 지연 합이 순수 전송시간보다 큽니다."; }
     else rw.hidden = true;
   }
 
