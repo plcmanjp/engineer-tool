@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" id="themeColor" content="#e9edf1">
+<link rel="icon" href="/engineer-tool/favicon.svg" type="image/svg+xml"><link rel="icon" href="/engineer-tool/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="/engineer-tool/apple-touch-icon.png">
+<title>인버터 컨베이어 속도 | 엔지니어 도구</title><meta name="description" content="인버터 주파수와 모터 극 수, 감속비, 롤러 직경으로 컨베이어 선속도를 계산합니다."><meta property="og:title" content="인버터 컨베이어 속도 | PLCManJP 엔지니어 도구"><meta property="og:description" content="인버터 주파수와 모터 극 수, 감속비, 롤러 직경으로 컨베이어 선속도를 계산합니다."><meta property="og:type" content="website"><meta property="og:url" content="https://plcmanjp.github.io/engineer-tool/inverter-conveyor/"><link rel="canonical" href="https://plcmanjp.github.io/engineer-tool/inverter-conveyor/">
+<script>(function(){var t="light";try{if(localStorage.getItem("plcmanjp-theme")==="dark")t="dark";}catch(e){}document.documentElement.setAttribute("data-theme",t);document.getElementById("themeColor").setAttribute("content",t==="dark"?"#10161d":"#e9edf1");})();</script>
+<style>
+  :root {
+    --bg: #e9edf1; --surface: #ffffff; --surface-2: #f3f6f9; --ink: #18222e;
+    --muted: #5c6772; --line: #d3dae1; --primary: #15629f; --primary-soft: #e4eef7;
+    --good: #2e7d32; --good-soft: #e7f5ea;
+    --mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+    --sans: -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.5; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 28px 16px 64px; }
+  h1.page { font-size: 22px; margin: 0 0 8px; }
+  p.lede { margin: 0 0 16px; color: var(--muted); }
+  .device { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; }
+  .device-bar { padding: 13px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--line); }
+  .device-bar h2 { font-size: 15px; margin: 0; font-weight: 600; flex: 1; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; }
+  .tabs button { border: 0; background: var(--surface-2); height: 44px; font-weight: 600; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--surface); color: var(--primary); border-bottom: 2px solid var(--primary); }
+  .screen { padding: 12px 14px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .hint { font-size: 12px; color: var(--muted); }
+  label.f { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--muted); }
+  label.f input, label.f select {
+    font-family: var(--mono); font-size: 14px; color: var(--ink); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; width: 100%;
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  [hidden] { display: none !important; }
+  .result { background: var(--good-soft); border: 1px solid color-mix(in srgb, var(--good) 35%, var(--line)); border-radius: 14px; padding: 12px; }
+  .row { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 14px; padding: 4px 0; }
+  .err { color: #c2384c; font-size: 13px; min-height: 1.2em; }
+</style>
+<style>
+:root { --bg:#e9edf1; --surface:#fff; --surface-2:#f3f6f9; --ink:#18222e; --muted:#5c6772; --line:#d3dae1; --primary:#15629f; --primary-soft:#e4eef7; --good:#2e7d32; --good-soft:#e7f5ea; --error:#b3263a; --mono:ui-monospace,"Cascadia Mono",Consolas,monospace; --sans:-apple-system,"Segoe UI","Malgun Gothic",system-ui,sans-serif; }
+:root[data-theme="dark"] { color-scheme:dark; --bg:#10161d; --surface:#19222c; --surface-2:#222e3a; --ink:#e6edf5; --muted:#aab9c9; --line:#3b4b5d; --primary:#81bfff; --primary-soft:#213e5a; --good:#8ed499; --good-soft:#193a29; --error:#ff9cab; }
+body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.5; }
+.wrap { max-width:700px; margin:0 auto; padding:28px 16px 36px; }
+.topbar .tw { max-width:700px; }
+.device { background:var(--surface); border:1px solid var(--line); border-radius:22px; overflow:hidden; }
+.device-bar { padding:13px 16px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--line); }
+.device-bar h2 { font-size:15px; margin:0; font-weight:600; flex:1; min-width:0; }
+.device-bar .back { color:var(--muted); text-decoration:none; font-size:24px; line-height:1; min-width:28px; text-align:center; }
+.screen { padding:12px 14px 18px; }
+main.screen { max-width:none; margin:0; }
+input,select,button { color:var(--ink); font-family:inherit; }
+input,select { background:var(--surface); min-width:0; }
+button { cursor:pointer; background:var(--surface); border-color:var(--line); }
+button:disabled { cursor:default; }
+label { min-width:0; }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
+.tabs button { color:var(--ink); }
+.chips button { color:var(--ink); }
+.chips button[aria-pressed="true"] { background:var(--primary-soft); }
+.err,.error { color:var(--error); }
+.grid2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.row { gap:12px; overflow-wrap:anywhere; }
+.row span:last-child { text-align:right; }
+.card { color:var(--ink); background:var(--surface-2); border-color:var(--line); overflow-wrap:anywhere; }
+.badge { color:var(--primary); }
+.muted,.hint,.empty { color:var(--muted); }
+.active,.primary { color:var(--surface); background:var(--primary); }
+a { color:var(--primary); }
+.group,.search { flex-wrap:wrap; }
+.search label { min-width:160px; }
+#status { overflow-wrap:anywhere; }
+canvas { background:#f3f6f9; }
+@media(max-width:420px) { .wrap { padding:20px 12px 28px; } .device-bar { padding:12px; gap:7px; } .grid3 { grid-template-columns:1fr; } .screen { padding:12px; } .search label { flex-basis:100%; } .row { font-size:12px; gap:8px; } }
+@media(max-width:340px) { .grid2 { grid-template-columns:1fr; } .themebtn { padding:6px 8px; } .device-bar h2 { font-size:13px; } .helpbtn { padding:5px 8px; } }
+</style>
+<link rel="stylesheet" href="../assets/tool-shell.css">
+<style>button:not(.active):not(.primary):not([aria-pressed="true"]):not([aria-selected="true"]){background:var(--surface)} .toolhelp-close{min-width:44px;min-height:44px}</style>
+</head><body><div class="topbar"><div class="tw"><div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">인버터 컨베이어 속도</span></div><button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트"><span aria-hidden="true">&#9788;</span> <span id="themeLbl">라이트</span></button></div></div>
+<div class="wrap"><header><p class="eyebrow">엔지니어 도구</p><h1 class="page">인버터 컨베이어 속도</h1><p class="lede">인버터 주파수와 모터 극 수, 감속비, 롤러 직경으로 컨베이어 선속도를 계산합니다.</p></header>
+
+  
+  <div class="device">
+    <div class="device-bar"><a class="back" href="../" aria-label="도구 목록으로">&larr;</a><h2>인버터 컨베이어 속도</h2><button class="helpbtn" id="toolHelpBtn" data-tool-help-open="toolHelp" aria-controls="toolHelp" type="button" aria-haspopup="dialog"><span aria-hidden="true">?</span> 도움말</button></div>
+    <div class="tabs" role="tablist">
+      <button type="button" id="tabFwd" aria-selected="true">Hz에서 속도</button>
+      <button type="button" id="tabRev" aria-selected="false">속도에서 Hz</button>
+    </div>
+    <div class="screen">
+      <p class="hint">주파수와 극 수, 감속비, 롤러 직경으로 선속도를 계산합니다. 인버터에 값을 쓰지 않습니다.</p>
+      <label class="f" id="freqWrap">주파수 (Hz)<input id="freq" value="50" inputmode="decimal"></label>
+      <div class="grid2" id="spdWrap" hidden>
+        <label class="f">목표 속도<input id="target" value="785.3982" inputmode="decimal"></label>
+        <label class="f">단위<select id="unit">
+          <option value="mm_s">mm/s</option><option value="m_min">m/min</option>
+          <option value="motor_rpm">모터 rpm</option><option value="shaft_rpm">출력축 rpm</option>
+        </select></label>
+      </div>
+      <div class="grid2">
+        <label class="f">극 수<input id="poles" value="4" inputmode="decimal"></label>
+        <label class="f">감속비<input id="ratio" value="10" inputmode="decimal"></label>
+        <label class="f">직경 (mm)<input id="diam" value="100" inputmode="decimal"></label>
+        <label class="f">슬립 (%)<input id="slip" value="0" inputmode="decimal"></label>
+      </div>
+      <p class="hint">모터 회전을 출력축 회전으로 나눈 값입니다. 예: 10은 10:1입니다.</p>
+      <p class="err" id="err"></p>
+      <div class="result" id="out"></div>
+    </div>
+  </div>
+
+</div>
+<footer class="site"><div class="fl"><a href="/">PLCManJP 홈</a><a class="tool-list-link" href="../">엔지니어 도구 목록으로</a></div></footer>
+<script src="../assets/vendor/decimal.js"></script>
+<script src="../assets/decimal-input.js"></script>
+<script>
+const N = CalcDecimal, D = N.D, PI = N.PI;
+let reverse = false;
+let selectedUnit = 'mm_s';
+let canonical = null;
+function num(id) {
+  const t = document.getElementById(id).value.trim();
+  return t === '' && id === 'slip' ? new D(0) : N.parse(t);
+}
+function fmt(v, n) { return N.fixed(v, n); }
+function mechanism() {
+  const poles = num('poles'), ratio = num('ratio'), diam = num('diam'), slip = num('slip');
+  if ([poles, ratio, diam, slip].some(v => v === null)) throw new Error('올바른 숫자를 입력하세요.');
+  if (poles.lte(0)) throw new Error('극 수는 0보다 커야 합니다.');
+  if (ratio.lte(0)) throw new Error('감속비는 0보다 커야 합니다.');
+  if (diam.lte(0)) throw new Error('직경은 0보다 커야 합니다.');
+  if (slip.lt(0) || slip.gte(100)) throw new Error('슬립은 0 이상 100 미만이어야 합니다.');
+  return { poles, ratio, diam, slip };
+}
+function finish(sync, frequency, settings) {
+  const slipF = new D(1).minus(settings.slip.div(100));
+  const motor = sync.times(slipF), shaft = motor.div(settings.ratio);
+  const piD = PI.times(settings.diam);
+  return { f: frequency, motor, shaft, mm_s: piD.times(shaft).div(60), m_min: piD.times(shaft).div(1000), motor_rpm: motor, shaft_rpm: shaft };
+}
+function computeReverse(target, unit, settings) {
+  let motor;
+  if (unit === 'motor_rpm') motor = target;
+  else if (unit === 'shaft_rpm') motor = target.times(settings.ratio);
+  else motor = target.times(unit === 'mm_s' ? 60 : 1000).div(PI.times(settings.diam)).times(settings.ratio);
+  const sync = motor.div(new D(1).minus(settings.slip.div(100)));
+  return finish(sync, sync.times(settings.poles).div(120), settings);
+}
+function changeUnit() {
+  const field = document.getElementById('target'), picker = document.getElementById('unit');
+  const next = picker.value;
+  if (next === selectedUnit) return;
+  try {
+    const settings = mechanism(), speed = num('target');
+    if (speed === null || speed.lte(0)) throw new Error('목표 속도는 0보다 커야 합니다.');
+    const anchor = canonical || { target: speed, settings, unit: selectedUnit, text: field.value };
+    const result = computeReverse(anchor.target, anchor.unit, anchor.settings);
+    const converted = next === anchor.unit ? anchor.text : result[next].toFixed();
+    if (N.parse(converted) === null) throw new Error('계산 가능한 속도를 입력하세요.');
+    canonical = anchor;
+    field.value = converted;
+    selectedUnit = next;
+    render();
+  } catch (cause) {
+    picker.value = selectedUnit;
+    document.getElementById('err').textContent = cause.message;
+    document.getElementById('out').textContent = '';
+  }
+}
+function render() {
+  const err = document.getElementById('err'), out = document.getElementById('out');
+  err.textContent = '';
+  try {
+    if (['poles', 'ratio', 'diam'].some(id => document.getElementById(id).value.trim() === '')) {
+      if (['poles', 'ratio', 'diam', 'slip'].some(id => document.getElementById(id).value.trim() !== '' && num(id) === null)) throw new Error('올바른 숫자를 입력하세요.');
+      out.textContent = '필요한 값을 입력하면 계산합니다.'; return;
+    }
+    const settings = mechanism();
+    const id = reverse ? 'target' : 'freq', input = num(id);
+    if (document.getElementById(id).value.trim() === '') { out.textContent = '필요한 값을 입력하면 계산합니다.'; return; }
+    if (input === null || input.lte(0)) throw new Error(reverse ? '목표 속도는 0보다 커야 합니다.' : '주파수는 0보다 커야 합니다.');
+    const result = reverse
+      ? computeReverse(canonical ? canonical.target : input, canonical ? canonical.unit : selectedUnit, canonical ? canonical.settings : settings)
+      : finish(new D(120).times(input).div(settings.poles), input, settings);
+    out.innerHTML = (reverse ? row('필요 주파수', fmt(result.f, 4) + ' Hz') : '') +
+      row('모터 회전수', fmt(result.motor, 2) + ' rpm') + row('출력축 회전수', fmt(result.shaft, 2) + ' rpm') +
+      row('선속도', fmt(result.mm_s, 4) + ' mm/s') + row('선속도', fmt(result.m_min, 4) + ' m/min');
+  } catch (cause) { err.textContent = cause.message; out.textContent = ''; }
+}
+function row(k, v) { return '<div class="row"><span>' + k + '</span><span>' + v + '</span></div>'; }
+function setMode(rev) {
+  reverse = rev;
+  document.getElementById("tabFwd").setAttribute("aria-selected", String(!rev));
+  document.getElementById("tabRev").setAttribute("aria-selected", String(rev));
+  document.getElementById("freqWrap").hidden = rev;
+  document.getElementById("spdWrap").hidden = !rev;
+  render();
+}
+document.getElementById("tabFwd").onclick = () => setMode(false);
+document.getElementById("tabRev").onclick = () => setMode(true);
+["freq","target","poles","ratio","diam","slip"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => { if (id !== "freq") canonical = null; render(); });
+});
+document.getElementById("unit").addEventListener("change", changeUnit);
+render();
+</script>
+
+<script>
+(function(){
+ var key="plcmanjp-theme",root=document.documentElement,btn=document.getElementById("themeBtn"),label=document.getElementById("themeLbl");
+ function apply(t,save){t=t==="dark"?"dark":"light";root.setAttribute("data-theme",t);label.textContent=t==="dark"?"다크":"라이트";btn.setAttribute("aria-label","테마 전환: 현재 "+label.textContent);document.getElementById("themeColor").setAttribute("content",t==="dark"?"#10161d":"#e9edf1");if(save)try{localStorage.setItem(key,t);}catch(e){}window.dispatchEvent(new Event("resize"));}
+ function read(){try{return localStorage.getItem(key)==="dark"?"dark":"light";}catch(e){return root.getAttribute("data-theme")==="dark"?"dark":"light";}}
+ btn.addEventListener("click",function(){apply(root.getAttribute("data-theme")==="dark"?"light":"dark",true);});
+ window.addEventListener("pageshow",function(){apply(read(),false);});window.addEventListener("storage",function(e){if(e.key===key||e.key===null)apply(read(),false);});apply(root.getAttribute("data-theme"),false);
+ var tabs=Array.from(document.querySelectorAll('.tabs button'));
+ tabs.forEach(function(tab,index){tab.setAttribute('role','tab');tab.addEventListener('keydown',function(e){var next=e.key==='ArrowRight'?(index+1)%tabs.length:e.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:e.key==='Home'?0:e.key==='End'?tabs.length-1:null;if(next!==null){e.preventDefault();tabs[next].focus();tabs[next].click();}});});
+ var err=document.getElementById('err');if(err)err.setAttribute('role','status');
+ var out=document.getElementById('out');if(out&&!document.getElementById('count')){out.setAttribute('role','region');out.setAttribute('aria-label','계산 결과');}
+})();
+</script>
+<dialog class="toolhelp" id="toolHelp" data-tool-help aria-labelledby="toolHelpTitle"><div class="toolhelp-head"><h3 id="toolHelpTitle">인버터 컨베이어 속도 도움말</h3><button class="toolhelp-close" data-tool-help-close type="button" aria-label="닫기">&times;</button></div><div class="toolhelp-body"><h4>이 도구로 할 수 있는 일</h4><p>인버터 주파수와 모터 극 수, 감속비, 롤러 직경으로 컨베이어 선속도를 계산합니다.</p><h4>쓰는 순서</h4><ol><li>Hz에서 속도 또는 속도에서 Hz 탭을 고릅니다.</li><li>주파수 또는 목표 속도를 입력합니다. 역산 단위는 mm/s, m/min, 모터 rpm, 출력축 rpm 중에서 선택하세요.</li><li>슬립은 선택입니다. 비우거나 0이면 동기 속도로 계산합니다.</li><li>모터 rpm, 출력축 rpm, mm/s, m/min을 확인합니다. 역산 탭은 필요 Hz도 보여 줍니다.</li></ol><h4>알아두면 좋은 것</h4><p>예: 50 Hz, 4극, 감속비 10, 직경 100 mm, 슬립 0은 모터 1500 rpm, 선속도 785.3982 mm/s입니다.</p></div></dialog>
+<script src="../assets/tool-help.js"></script>
+</body></html>

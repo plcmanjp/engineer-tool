@@ -134,14 +134,14 @@
 
             <div class="frow" id="rowD">
               <label class="f"><span>지름 (d)</span>
-                <div class="iwrap"><input type="number" step="any" id="dInput" value="" placeholder="지름 입력 (예시:100)"><span class="unit">mm</span></div>
+                <div class="iwrap"><input type="text" inputmode="decimal" step="any" id="dInput" value="" placeholder="지름 입력 (예시:100)"><span class="unit">mm</span></div>
               </label>
               <button type="button" class="copybtn" data-target="dInput" aria-label="지름 값 복사">&#10209;</button>
             </div>
 
             <div class="frow" id="rowR">
               <label class="f"><span>반지름 (r)</span>
-                <div class="iwrap"><input type="number" step="any" id="rInput" value="" placeholder="반지름 입력 (예시:50)"><span class="unit">mm</span></div>
+                <div class="iwrap"><input type="text" inputmode="decimal" step="any" id="rInput" value="" placeholder="반지름 입력 (예시:50)"><span class="unit">mm</span></div>
               </label>
               <button type="button" class="copybtn" data-target="rInput" aria-label="반지름 값 복사">&#10209;</button>
             </div>
@@ -149,7 +149,7 @@
             <div class="field-with-formula">
               <div class="frow" id="rowC">
                 <label class="f"><span>원주 (C)</span>
-                  <div class="iwrap"><input type="number" step="any" id="cInput" value="" placeholder="원주 입력 (예시:314.1593)"><span class="unit">mm</span></div>
+                  <div class="iwrap"><input type="text" inputmode="decimal" step="any" id="cInput" value="" placeholder="원주 입력 (예시:314.1593)"><span class="unit">mm</span></div>
                 </label>
                 <button type="button" class="copybtn" data-target="cInput" aria-label="원주 값 복사">&#10209;</button>
               </div>
@@ -159,7 +159,7 @@
             <div class="field-with-formula">
               <div class="frow" id="rowA">
                 <label class="f"><span>면적 (A)</span>
-                  <div class="iwrap"><input type="number" step="any" id="aInput" value="" placeholder="면적 입력 (예시:7853.9816)"><span class="unit">mm&sup2;</span></div>
+                  <div class="iwrap"><input type="text" inputmode="decimal" step="any" id="aInput" value="" placeholder="면적 입력 (예시:7853.9816)"><span class="unit">mm&sup2;</span></div>
                 </label>
                 <button type="button" class="copybtn" data-target="aInput" aria-label="면적 값 복사">&#10209;</button>
               </div>
@@ -183,8 +183,8 @@
             <div class="zone-head"><span class="h"><span>&#9654;</span><span>모듈, 잇수 입력</span></span><span class="sub">PCD = m &times; z (단방향, 역산 없음)</span></div>
 
             <div class="row">
-              <label class="f">모듈 (m)<input type="number" step="any" id="mInput" value="" placeholder="모듈 입력 (예시:2)"></label>
-              <label class="f">잇수 (z)<input type="number" step="1" id="zInput" value="" placeholder="잇수 입력 (예시:20)"></label>
+              <label class="f">모듈 (m)<input type="text" inputmode="decimal" step="any" id="mInput" value="" placeholder="모듈 입력 (예시:2)"></label>
+              <label class="f">잇수 (z)<input type="text" inputmode="decimal" step="1" id="zInput" value="" placeholder="잇수 입력 (예시:20)"></label>
             </div>
 
             <div class="field-with-formula">
@@ -221,6 +221,8 @@
     </div>
   </footer>
 
+<script src="../assets/vendor/decimal.js"></script>
+<script src="../assets/decimal-input.js"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -233,31 +235,10 @@
   var lastKind = "D"; // 초기 활성 필드(값 미입력 — 앱과 동일 빈 화면 시작)
 
   // ── 공통 숫자 파싱/표시 (도메인 CircleConvert/PcdGear의 π·반올림 규칙 반영) ──
-  var PI = 3.14159265358979323846264338327950288419716939937510582097494459230781;
-
-  function parseNum(text) {
-    var t = (text || "").trim();
-    if (t === "") return null;
-    if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(t)) return null;
-    var v = Number(t);
-    return isFinite(v) ? v : null;
-  }
-  function parseIntStrict(text) {
-    var t = (text || "").trim();
-    if (t === "" || !/^[+-]?\d+$/.test(t)) return null;
-    var v = parseInt(t, 10);
-    return isFinite(v) ? v : null;
-  }
-  /** BigDecimal setScale(4, HALF_UP).stripTrailingZeros().toPlainString() 근사. */
-  function fmtDisplay(v) {
-    if (!isFinite(v)) return "";
-    var sign = v < 0 ? "-" : "";
-    var av = Math.abs(v);
-    var r = Math.round(av * 10000 + 1e-7) / 10000;
-    var s = r.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
-    if (s === "" || s === "-0") s = "0";
-    return (r === 0 ? "" : sign) + s;
-  }
+  var N = CalcDecimal, D = N.D, PI = N.PI;
+  function parseNum(text) { return N.parse(text); }
+  function parseIntStrict(text) { return N.long(text); }
+  function fmtDisplay(v) { return N.plain(v, 4); }
 
   function updateCopyState() {
     document.querySelectorAll(".copybtn").forEach(function (btn) {
@@ -291,7 +272,7 @@
       drawCircleDiagram();
       return;
     }
-    if (v <= 0) {
+    if (v.lte(0)) {
       clearOthers(kind);
       el.circError.hidden = false;
       updateCopyState();
@@ -303,11 +284,11 @@
     var d;
     switch (kind) {
       case "D": d = v; break;
-      case "R": d = v * 2; break;
-      case "C": d = v / PI; break;
-      case "A": d = 2 * Math.sqrt(v / PI); break;
+      case "R": d = v.times(2); break;
+      case "C": d = v.div(PI); break;
+      case "A": d = N.circleSqrt(v.div(PI)).times(2); break;
     }
-    var r = d / 2, c = PI * d, a = PI * d * d / 4;
+    var r = d.div(2), c = PI.times(d), a = PI.times(d.times(d)).div(4);
 
     if (kind !== "D") el.dInput.value = fmtDisplay(d);
     if (kind !== "R") el.rInput.value = fmtDisplay(r);
@@ -336,7 +317,7 @@
     }
     var mod = parseNum(modText);
     var z = parseIntStrict(zText);
-    if (mod === null || z === null || mod <= 0 || z < 1) {
+    if (mod === null || z === null || mod.lte(0) || z < 1n) {
       el.pcdOutput.value = "";
       el.pcdError.hidden = false;
       updateCopyState();
@@ -344,7 +325,7 @@
       return;
     }
     el.pcdError.hidden = true;
-    el.pcdOutput.value = fmtDisplay(mod * z);
+    el.pcdOutput.value = fmtDisplay(N.exactProduct(mod, new D(z.toString())));
     updateCopyState();
     drawGear();
   }
@@ -352,28 +333,81 @@
   el.zInput.addEventListener("input", recomputePcd);
 
   // ── 복사 버튼 ──
+  function clearCopyFailure() {
+    var box = document.getElementById("clipboardFailure");
+    if (box) box.remove();
+  }
+  function showCopyFailure(text, anchor) {
+    clearCopyFailure();
+    var box = document.createElement("div");
+    box.id = "clipboardFailure";
+    box.setAttribute("role", "status");
+    box.style.color = "var(--muted)";
+    var message = document.createElement("p");
+    message.textContent = "복사하지 못했습니다. 아래 값을 직접 선택하여 복사하세요.";
+    var value = document.createElement("textarea");
+    value.value = text;
+    value.readOnly = true;
+    value.setAttribute("aria-label", "직접 복사할 값");
+    value.style.width = "100%";
+    value.style.fontFamily = "var(--mono)";
+    value.style.color = "var(--ink)";
+    value.style.background = "var(--surface)";
+    box.appendChild(message);
+    box.appendChild(value);
+    var screen = anchor && anchor.closest("#screenTable, #screenKeypad, .screen");
+    (screen || document.body).appendChild(box);
+    value.focus();
+    value.select();
+  }
   function fallbackCopy(text) {
+    var previous = document.activeElement;
     var ta = document.createElement("textarea");
-    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
-    document.body.appendChild(ta); ta.focus(); ta.select();
-    try { document.execCommand("copy"); } catch (e) { /* no-op */ }
-    document.body.removeChild(ta);
+    ta.value = text;
+    ta.readOnly = true;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    var copied = false;
+    try {
+      ta.focus();
+      ta.select();
+      copied = document.execCommand("copy") === true;
+    } catch (e) {
+      copied = false;
+    } finally {
+      ta.remove();
+      if (previous && previous.isConnected) { try { previous.focus(); } catch (e) {} }
+    }
+    return copied;
+  }
+  async function writeClipboard(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (e) {
+      // Fall through to the checked legacy copy path.
+    }
+    return fallbackCopy(text);
   }
   document.querySelectorAll(".copybtn").forEach(function (btn) {
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", async function () {
       var input = $(btn.getAttribute("data-target"));
       if (!input || !input.value) return;
+      clearCopyFailure();
+      if (btn._copyRestore) clearTimeout(btn._copyRestore);
+      if (btn._copyLabel !== undefined) btn.textContent = btn._copyLabel;
       var text = input.value;
-      var restore = btn.textContent;
-      function flash() {
-        btn.textContent = "✓";
-        setTimeout(function () { btn.textContent = restore; }, 900);
+      if (!(await writeClipboard(text))) {
+        showCopyFailure(text, btn);
+        return;
       }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(flash).catch(function () { fallbackCopy(text); flash(); });
-      } else {
-        fallbackCopy(text); flash();
-      }
+      if (btn._copyLabel === undefined) btn._copyLabel = btn.textContent;
+      if (btn._copyRestore) clearTimeout(btn._copyRestore);
+      btn.textContent = "✓";
+      btn._copyRestore = setTimeout(function () { btn.textContent = btn._copyLabel; }, 900);
     });
   });
 
@@ -458,14 +492,14 @@
     var cs = getComputedStyle(document.documentElement), col = function (n) { return cs.getPropertyValue(n).trim(); };
 
     var zParsed = parseIntStrict(el.zInput.value);
-    var isExample = (zParsed === null || zParsed < 1);
-    var actualZ = isExample ? 12 : zParsed;
-    var drawZ = Math.max(5, Math.min(40, actualZ));
+    var isExample = (zParsed === null || zParsed < 1n);
+    var actualZ = isExample ? 12n : zParsed;
+    var drawZ = Number(actualZ < 5n ? 5n : actualZ > 40n ? 40n : actualZ);
 
     var modText = el.mInput.value.trim();
     var modDisplay = modText !== "" ? modText : "2";
     var pcdText = el.pcdOutput.value;
-    var pcdDisplay = pcdText !== "" ? pcdText : String(2 * actualZ);
+    var pcdDisplay = pcdText !== "" ? pcdText : String(2n * actualZ);
 
     var cx = W / 2, cy = H / 2, pitchR = Math.min(W, H) * 0.32;
     var mPx = 2 * pitchR / drawZ;

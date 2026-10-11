@@ -317,20 +317,81 @@
   function col(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
   // ── 복사 유틸 ──────────────────────────────────────────────────────────────
-  function copyText(text) {
-    if (!text) return;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).catch(function () { fallbackCopy(text); });
-    } else {
-      fallbackCopy(text);
-    }
+  function clearCopyFeedback() {
+    var box = document.getElementById("clipboardFeedback");
+    if (box) box.remove();
+  }
+  function showCopyFailure(text, anchor) {
+    clearCopyFeedback();
+    var box = document.createElement("div");
+    box.id = "clipboardFeedback";
+    box.setAttribute("role", "status");
+    box.style.color = "var(--muted)";
+    var message = document.createElement("p");
+    message.textContent = "복사하지 못했습니다. 아래 값을 직접 선택하여 복사하세요.";
+    var value = document.createElement("textarea");
+    value.value = text;
+    value.readOnly = true;
+    value.setAttribute("aria-label", "직접 복사할 값");
+    value.style.width = "100%";
+    value.style.fontFamily = "var(--mono)";
+    value.style.color = "var(--ink)";
+    value.style.background = "var(--surface)";
+    box.appendChild(message);
+    box.appendChild(value);
+    var screen = anchor && anchor.closest("#screenTable, #screenKeypad, .screen");
+    (screen || document.body).appendChild(box);
+    value.focus();
+    value.select();
   }
   function fallbackCopy(text) {
+    var previous = document.activeElement;
     var ta = document.createElement("textarea");
-    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
-    document.body.appendChild(ta); ta.select();
-    try { document.execCommand("copy"); } catch (e) { /* no-op */ }
-    document.body.removeChild(ta);
+    ta.value = text;
+    ta.readOnly = true;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    var copied = false;
+    try {
+      ta.focus();
+      ta.select();
+      copied = document.execCommand("copy") === true;
+    } catch (e) {
+      copied = false;
+    } finally {
+      ta.remove();
+      if (previous && previous.isConnected) { try { previous.focus(); } catch (e) {} }
+    }
+    return copied;
+  }
+  async function writeClipboard(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (e) {
+      // Fall through to the checked legacy copy path.
+    }
+    return fallbackCopy(text);
+  }
+  async function copyText(text, anchor) {
+    if (!text) return false;
+    anchor = anchor || document.activeElement;
+    clearCopyFeedback();
+    var copied = await writeClipboard(text);
+    if (copied) {
+      var status = document.createElement("p");
+      status.id = "clipboardFeedback";
+      status.setAttribute("role", "status");
+      status.textContent = "복사했습니다.";
+      var screen = anchor && anchor.closest(".screen");
+      (screen || document.body).appendChild(status);
+    } else {
+      showCopyFailure(text, anchor);
+    }
+    return copied;
   }
   function parseNum(text) {
     var t = (text || "").trim();

@@ -320,3 +320,5 @@ dialog.toolhelp::backdrop {
   color: var(--muted);
   font-size: 11px;
 }
+
+[hidden] { display: none !important; }

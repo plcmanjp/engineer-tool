@@ -151,7 +151,7 @@
       <div class="zone green">
         <div class="zone-head"><span class="h"><span>&#9670;</span><span>현재값, 변환값</span></span></div>
         <div class="pv">
-          <label class="f"><span id="pvHint">현재값 PV (분해능)</span><input type="number" id="pv" value="0" placeholder="분해능 입력 또는 그래프 드래그" inputmode="decimal"></label>
+          <label class="f"><span id="pvHint">현재값 PV (분해능)</span><input type="text" id="pv" value="0" placeholder="분해능 입력 또는 그래프 드래그" inputmode="decimal"></label>
         </div>
         <div class="result" id="resultBox" hidden>
           <div class="rrow"><span class="cap" id="resCap">변환값</span><span class="val" id="resVal">—</span></div>
@@ -206,8 +206,8 @@
       </select>
     </label>
     <div class="row">
-      <label class="f">분해능 MIN<input type="number" id="countMin" value="0" placeholder="분해능 MIN 입력 (예시:0)" inputmode="numeric"></label>
-      <label class="f">분해능 MAX<input type="number" id="countMax" value="4000" placeholder="분해능 MAX 입력 (예시:4000)" inputmode="numeric"></label>
+      <label class="f">분해능 MIN<input type="text" id="countMin" value="0" placeholder="분해능 MIN 입력 (예시:0)" inputmode="numeric"></label>
+      <label class="f">분해능 MAX<input type="text" id="countMax" value="4000" placeholder="분해능 MAX 입력 (예시:4000)" inputmode="numeric"></label>
     </div>
   </div>
 </template>
@@ -224,8 +224,8 @@
         </div>
       </div>
       <div class="row">
-        <label class="f">신호 MIN<input type="number" id="sigMin" value="4" placeholder="신호 MIN 입력 (예시:4)" inputmode="decimal"></label>
-        <label class="f">신호 MAX<input type="number" id="sigMax" value="20" placeholder="신호 MAX 입력 (예시:20)" inputmode="decimal"></label>
+        <label class="f">신호 MIN<input type="text" id="sigMin" value="4" placeholder="신호 MIN 입력 (예시:4)" inputmode="decimal"></label>
+        <label class="f">신호 MAX<input type="text" id="sigMax" value="20" placeholder="신호 MAX 입력 (예시:20)" inputmode="decimal"></label>
       </div>
     </div>
   </div>
@@ -234,8 +234,8 @@
 <template id="tpl-eu">
   <div data-blk="eu">
     <div class="row three">
-      <label class="f">변환값 MIN<input type="number" id="euMin" value="0" placeholder="변환값 MIN 입력 (예시:0)" inputmode="decimal"></label>
-      <label class="f">변환값 MAX<input type="number" id="euMax" value="100" placeholder="변환값 MAX 입력 (예시:100)" inputmode="decimal"></label>
+      <label class="f">변환값 MIN<input type="text" id="euMin" value="0" placeholder="변환값 MIN 입력 (예시:0)" inputmode="decimal"></label>
+      <label class="f">변환값 MAX<input type="text" id="euMax" value="100" placeholder="변환값 MAX 입력 (예시:100)" inputmode="decimal"></label>
       <label class="f">단위<input type="text" id="euUnit" list="unitList" value="kPa" placeholder="단위 입력 (예시:kPa)"></label>
     </div>
     <datalist id="unitList">
@@ -246,6 +246,8 @@
   </div>
 </template>
 
+<script src="../assets/vendor/decimal.js"></script>
+<script src="../assets/decimal-input.js"></script>
 <script>
 (function () {
   var mode = "AD", sigUnit = "mA";
@@ -278,7 +280,11 @@
   $("tab-ad").addEventListener("click", function () { setTab("AD"); });
   $("tab-da").addEventListener("click", function () { setTab("DA"); });
 
-  el.sigEnable.addEventListener("change", function () { el.sigBody.hidden = !this.checked; compute(); });
+  el.sigEnable.addEventListener("change", function () {
+    el.sigBody.hidden = !this.checked;
+    if (this.checked) { el.sigPreset.value = SIG_DEFAULT[sigUnit]; applyPreset(); }
+    compute();
+  });
 
   var PRESETS = { mA: [["4,20","4~20 mA"],["0,20","0~20 mA"]], V: [["0,5","0~5 V"],["1,5","1~5 V"],["0,10","0~10 V"],["-10,10","-10~10 V"]] };
   var SIG_DEFAULT = { mA: "4,20", V: "1,5" };
@@ -305,58 +311,46 @@
   [el.sigMin, el.sigMax].forEach(function (e) { e.addEventListener("input", function () { el.sigPreset.value = "custom"; }); });
   ["countMin","countMax","sigMin","sigMax","euMin","euMax","euUnit","pv"].forEach(function (id) { el[id].addEventListener("input", compute); });
 
-  function num(e) { var v = parseFloat(e.value); return isFinite(v) ? v : NaN; }
-  function fmt4(v) { return isFinite(v) ? (Math.round(v * 10000) / 10000).toFixed(4) : "—"; }
-  function fmtAx(v) { var r = Math.round(v * 100) / 100; return (Object.is(r, -0) ? 0 : r).toString(); }
-  function within(v, a, b) { return v >= Math.min(a, b) && v <= Math.max(a, b); }
-
-  // 현재 계산 상태(그래프·드래그 공용)
+  var N = CalcDecimal, D = N.D;
+  var Plot = Decimal.clone({ precision: 2500, rounding: Decimal.ROUND_HALF_UP });
+  function num(e) { return N.parse(e.value); }
+  function fmt4(v) { return v == null ? '—' : N.fixed(v, 4); }
+  function fmtAx(v) { return N.plain(v, 2); }
+  function within(v, a, b) { return v.gte(D.min(a, b)) && v.lte(D.max(a, b)); }
   var G = null;
-
   function compute() {
     var cMin = num(el.countMin), cMax = num(el.countMax);
     var sMin = num(el.sigMin), sMax = num(el.sigMax);
     var eMin = num(el.euMin), eMax = num(el.euMax), eUnit = el.euUnit.value.trim();
     var pv = num(el.pv);
-    var sigOn = el.sigEnable.checked && isFinite(sMin) && isFinite(sMax);
+    var sigOn = el.sigEnable.checked && sMin !== null && sMax !== null;
     el.sigOut.hidden = true;
-
-    var cSpan = cMax - cMin;
-    // count MIN=MAX -> both directions invalid. EU MIN=MAX(SPAN_e=0): only reverse(D/A) invalid(div0);
-    // A/D transform stays valid because EU is a constant(OFFSET_e). AnalogScale.kt F3 directional asymmetry.
-    if (!isFinite(cSpan) || cSpan === 0 || !isFinite(eMin) || !isFinite(eMax) || (mode === "DA" && eMax === eMin)) {
+    if ([cMin, cMax, eMin, eMax, pv].some(function (v) { return v === null; }) || cMax.eq(cMin)) {
       el.resultBox.hidden = true; G = null; drawGraph(); return;
     }
-    var SPANe = (eMax - eMin) / cSpan, OFFe = eMin - SPANe * cMin;
-    var SPANs = (sMax - sMin) / cSpan, OFFs = sMin - SPANs * cMin;
-
-    el.eqEu.innerHTML = (mode === "AD") ? "변환값 = SPAN_e &times; PV + OFFSET_e" : "분해능 = (PV &minus; OFFSET_e) / SPAN_e";
+    var cSpan = cMax.minus(cMin);
+    var SPANe = eMax.minus(eMin).div(cSpan), OFFe = eMin.minus(SPANe.times(cMin));
+    if (mode === 'DA' && SPANe.isZero()) { el.resultBox.hidden = true; G = null; drawGraph(); return; }
+    var SPANs = sigOn ? sMax.minus(sMin).div(cSpan) : null;
+    var OFFs = sigOn ? sMin.minus(SPANs.times(cMin)) : null;
+    el.eqEu.innerHTML = (mode === 'AD') ? '변환값 = SPAN_e &times; PV + OFFSET_e' : '분해능 = (PV &minus; OFFSET_e) / SPAN_e';
     el.eqSig.hidden = !sigOn;
-    el.coef.innerHTML = "SPAN_e = " + fmt4(SPANe) + "&nbsp;&nbsp; OFFSET_e = " + fmt4(OFFe) + (sigOn ? "<br>SPAN_s = " + fmt4(SPANs) + "&nbsp;&nbsp; OFFSET_s = " + fmt4(OFFs) : "");
-
-    // 입력/출력 정의역 + 변환값
-    var inMin = (mode === "AD") ? cMin : eMin, inMax = (mode === "AD") ? cMax : eMax;
-    var outMin = (mode === "AD") ? eMin : cMin, outMax = (mode === "AD") ? eMax : cMax;
-    var inLabel = (mode === "AD") ? "분해능" : "공학값", outLabel = (mode === "AD") ? "공학값" : "분해능";
-    G = { inMin: inMin, inMax: inMax, outMin: outMin, outMax: outMax, inLabel: inLabel, outLabel: outLabel, pv: NaN, out: NaN, oor: false };
-
-    if (isFinite(pv)) {
-      var count = (mode === "AD") ? pv : (pv - OFFe) / SPANe;
-      var euVal = (mode === "AD") ? (SPANe * pv + OFFe) : pv;
-      var output = (mode === "AD") ? euVal : count;
-      var sigV = SPANs * count + OFFs;
-      var inRange = within(pv, inMin, inMax);
-      G.pv = pv; G.out = output; G.oor = !inRange;
-
-      el.resultBox.hidden = false;
-      el.resVal.textContent = fmt4(output) + ((mode === "AD" && eUnit) ? " " + eUnit : "");
-      el.resVal.className = "val" + (inRange ? "" : " out");
-      el.sigOut.hidden = !sigOn;
-      el.sigVal.textContent = fmt4(sigV) + " " + sigUnit; el.sigVal.className = "sv" + (inRange ? "" : " out");
-      el.badge.hidden = inRange;
-    } else {
-      el.resultBox.hidden = true;
-    }
+    el.coef.innerHTML = 'SPAN_e = ' + fmt4(SPANe) + '&nbsp;&nbsp; OFFSET_e = ' + fmt4(OFFe) + (sigOn ? '<br>SPAN_s = ' + fmt4(SPANs) + '&nbsp;&nbsp; OFFSET_s = ' + fmt4(OFFs) : '');
+    var inMin = mode === 'AD' ? cMin : eMin, inMax = mode === 'AD' ? cMax : eMax;
+    var outMin = mode === 'AD' ? eMin : cMin, outMax = mode === 'AD' ? eMax : cMax;
+    var count = mode === 'AD' ? pv : pv.minus(OFFe).div(SPANe);
+    var output = mode === 'AD' ? SPANe.times(pv).plus(OFFe) : count;
+    var sigV = sigOn ? SPANs.times(count).plus(OFFs) : null;
+    var inRange = within(pv, inMin, inMax);
+    G = { inMin: inMin, inMax: inMax, outMin: outMin, outMax: outMax,
+      inLabel: mode === 'AD' ? '분해능' : '공학값', outLabel: mode === 'AD' ? '공학값' : '분해능', pv: pv, out: output, oor: !inRange };
+    el.resultBox.hidden = false;
+    el.resVal.textContent = fmt4(output) + ((mode === 'AD' && eUnit) ? ' ' + eUnit : '');
+    el.resVal.className = 'val' + (inRange ? '' : ' out');
+    el.sigOut.hidden = !sigOn;
+    el.sigVal.textContent = fmt4(sigV) + ' ' + sigUnit;
+    el.sigVal.className = 'sv' + (inRange ? '' : ' out');
+    el.badge.hidden = inRange;
     drawGraph();
   }
 
@@ -368,23 +362,23 @@
     c.width = W * dpr; c.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     var cs = getComputedStyle(document.documentElement), col = function (n) { return cs.getPropertyValue(n).trim(); };
     var plotW = W - padL - padR, plotH = H - padT - padB;
-    if (!G) { ctx.fillStyle = col("--muted"); ctx.font = "12px sans-serif"; ctx.textAlign = "center"; ctx.fillText("MIN = MAX: 직선 정의 불가", W / 2, H / 2); return; }
+    if (!G) { el.graph._map = null; ctx.fillStyle = col("--muted"); ctx.font = "12px sans-serif"; ctx.textAlign = "center"; ctx.fillText("MIN = MAX: 직선 정의 불가", W / 2, H / 2); return; }
 
-    var xLo0 = Math.min(G.inMin, G.inMax), xHi0 = Math.max(G.inMin, G.inMax);
-    var yLo0 = Math.min(G.outMin, G.outMax), yHi0 = Math.max(G.outMin, G.outMax);
-    var xB = (xHi0 - xLo0) / 10, yB = (yHi0 - yLo0) / 5;
-    if (yB === 0) yB = (Math.abs(yLo0) || 1) / 5;   // EU MIN=MAX(A/D constant): horizontal line, Y-band div0 guard
-    var xLo = xLo0 - xB, xHi = xHi0 + xB, yLo = yLo0 - yB, yHi = yHi0 + yB;
-    var X = function (v) { return padL + (v - xLo) / (xHi - xLo) * plotW; };
-    var Y = function (v) { return padT + plotH - (v - yLo) / (yHi - yLo) * plotH; };
+    var xLo0 = new Plot(D.min(G.inMin, G.inMax).toString()), xHi0 = new Plot(D.max(G.inMin, G.inMax).toString());
+    var yLo0 = new Plot(D.min(G.outMin, G.outMax).toString()), yHi0 = new Plot(D.max(G.outMin, G.outMax).toString());
+    var xB = xHi0.minus(xLo0).div(10), yB = yHi0.minus(yLo0).div(5);
+    if (yB.isZero()) yB = (yLo0.isZero() ? new D(1) : yLo0.abs()).div(5);
+    var xLo = xLo0.minus(xB), xHi = xHi0.plus(xB), yLo = yLo0.minus(yB), yHi = yHi0.plus(yB);
+    var X = function (v) { return padL + new Plot(v).minus(xLo).div(xHi.minus(xLo)).toNumber() * plotW; };
+    var Y = function (v) { return padT + plotH - new Plot(v).minus(yLo).div(yHi.minus(yLo)).toNumber() * plotH; };
 
     ctx.font = "9px ui-monospace, monospace"; ctx.fillStyle = col("--muted");
     // 가로 그리드(5분할 ±1밴드 = 8선)
     ctx.strokeStyle = col("--line"); ctx.lineWidth = 1; ctx.textAlign = "right"; ctx.textBaseline = "middle";
-    for (var j = 0; j <= 7; j++) { var yv = yLo + yB * j, gy = Y(yv); ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(padL + plotW, gy); ctx.stroke(); ctx.fillText(fmtAx(yv), padL - 5, gy); }
+    for (var j = 0; j <= 7; j++) { var yv = yLo.plus(yB.times(j)), gy = Y(yv); ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(padL + plotW, gy); ctx.stroke(); ctx.fillText(fmtAx(yv), padL - 5, gy); }
     // 세로 그리드(10분할 ±1밴드 = 13선), X 라벨 홀수 분할점
     ctx.textAlign = "center"; ctx.textBaseline = "top";
-    for (var i = 0; i <= 12; i++) { var xv = xLo + xB * i, gx = X(xv); ctx.beginPath(); ctx.moveTo(gx, padT); ctx.lineTo(gx, padT + plotH); ctx.stroke(); if (i % 2 === 1) ctx.fillText(fmtAx(xv), gx, padT + plotH + 3); }
+    for (var i = 0; i <= 12; i++) { var xv = xLo.plus(xB.times(i)), gx = X(xv); ctx.beginPath(); ctx.moveTo(gx, padT); ctx.lineTo(gx, padT + plotH); ctx.stroke(); if (i % 2 === 1) ctx.fillText(fmtAx(xv), gx, padT + plotH + 3); }
     // 축 제목
     ctx.fillStyle = col("--muted"); ctx.font = "10px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "bottom"; ctx.fillText(G.inLabel, padL + plotW / 2, H); ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText(G.outLabel, 2, 0);
 
@@ -395,7 +389,7 @@
     [[G.inMin, G.outMin], [G.inMax, G.outMax]].forEach(function (p) { ctx.beginPath(); ctx.arc(X(p[0]), Y(p[1]), 4, 0, 7); ctx.fill(); });
 
     // 현재 PV 마커
-    if (isFinite(G.pv) && isFinite(G.out)) {
+    if (G.pv !== null && G.out !== null) {
       var mc = G.oor ? col("--warn") : col("--good");
       var mx = Math.max(padL, Math.min(padL + plotW, X(G.pv))), my = Math.max(padT, Math.min(padT + plotH, Y(G.out)));
       ctx.setLineDash([5, 4]); ctx.strokeStyle = mc; ctx.lineWidth = 1; ctx.globalAlpha = .6;
@@ -415,10 +409,9 @@
     var rect = el.graph.getBoundingClientRect();
     var m = el.graph._map;
     var frac = Math.max(0, Math.min(1, (clientX - rect.left - padL) / m.plotW));
-    var v = m.xLo + frac * (m.xHi - m.xLo);
-    var span = Math.abs(G.inMax - G.inMin);
-    var rounded = span >= 50 ? Math.round(v) : Math.round(v * 100) / 100;
-    el.pv.value = rounded; compute();
+    var v = m.xLo.plus(m.xHi.minus(m.xLo).times(String(frac)));
+    var span = G.inMax.minus(G.inMin).abs();
+    el.pv.value = N.plain(v, span.gte(50) ? 0 : 2); compute();
   }
   var dragging = false;
   el.graph.addEventListener("pointerdown", function (e) { dragging = true; el.graph.setPointerCapture(e.pointerId); dragTo(e.clientX); });

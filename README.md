@@ -23,7 +23,13 @@ PLC와 자동화 실무에서 자주 사용하는 계산과 변환을 브라우�
 | [통신 코드 계산기](https://plcmanjp.github.io/engineer-tool/comm-code/) | LRC, BCC와 체크섬 계산 |
 | [시리얼 통신 속도 계산기](https://plcmanjp.github.io/engineer-tool/serial-time/) | 프레임 전송 시간과 처리량 계산 |
 | [UVW 스테이지 계산기](https://plcmanjp.github.io/engineer-tool/uvw-stage/) | UVW 스테이지 좌표와 모터 이동량 계산 |
-| [Modbus RTU 프레임 생성기](https://plcmanjp.github.io/engineer-tool/modbus-rtu/) | 요청 프레임 생성과 응답 해석 |
+| [Modbus RTU 프레임 생성기](https://plcmanjp.github.io/engineer-tool/modbus-rtu/) | 8개 기능 코드의 요청 프레임과 CRC 계산 |
+| [인버터 컨베이어 속도](https://plcmanjp.github.io/engineer-tool/inverter-conveyor/) | 주파수와 이송속도 양방향 계산 |
+| [서보 이동시간](https://plcmanjp.github.io/engineer-tool/servo-move-time/) | 최고속도 기준 가감속 시간과 프로파일 재생 |
+| [서보 이상코드 검색](https://plcmanjp.github.io/engineer-tool/servo-alarm/) | 5기종 오류/경고/상세코드 2349항목과 조치사항 |
+| [서보 버퍼 주소 계산](https://plcmanjp.github.io/engineer-tool/servo-buffer/) | 8기종 버퍼 2696정의의 검색과 주소 계산 |
+
+수치/기하, 서보/모션, 통신/코드 카테고리로 14개 페이지를 선택합니다. 앱의 ASCII 코드표와 입력기는 웹 한 페이지에 함께 제공합니다.
 
 ## 문제 제보
 
@@ -32,3 +38,7 @@ PLC와 자동화 실무에서 자주 사용하는 계산과 변환을 브라우�
 ## 저장소 안내
 
 이 저장소는 엔지니어 도구의 공개 소스와 GitHub Pages 배포 파일을 보유합니다.
+
+## 계산 라이브러리
+
+십진 계산은 [decimal.js 10.6.0](https://github.com/MikeMcl/decimal.js/tree/v10.6.0)의 로컬 사본을 사용합니다. MIT 라이선스는 assets/vendor/decimal-LICENCE.md에 있습니다. 런타임 CDN 요청은 없습니다.

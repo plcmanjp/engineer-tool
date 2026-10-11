@@ -304,13 +304,82 @@
     });
   }
 
-  function copyText(text, hintEl) {
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text);
-    } catch (e) { /* 클립보드 권한 없는 샌드박스 환경 — 무시 */ }
-    if (hintEl) { hintEl.textContent = "복사됨: " + text; hintEl.setAttribute("data-empty", "false"); }
+  function clearCopyFailure() {
+    var box = document.getElementById("clipboardFailure");
+    if (box) box.remove();
   }
-
+  function showCopyFailure(text, anchor) {
+    clearCopyFailure();
+    var box = document.createElement("div");
+    box.id = "clipboardFailure";
+    box.setAttribute("role", "status");
+    box.style.color = "var(--muted)";
+    var message = document.createElement("p");
+    message.textContent = "복사하지 못했습니다. 아래 값을 직접 선택하여 복사하세요.";
+    var value = document.createElement("textarea");
+    value.value = text;
+    value.readOnly = true;
+    value.setAttribute("aria-label", "직접 복사할 값");
+    value.style.width = "100%";
+    value.style.fontFamily = "var(--mono)";
+    value.style.color = "var(--ink)";
+    value.style.background = "var(--surface)";
+    box.appendChild(message);
+    box.appendChild(value);
+    var screen = anchor && anchor.closest("#screenTable, #screenKeypad, .screen");
+    (screen || document.body).appendChild(box);
+    value.focus();
+    value.select();
+  }
+  function fallbackCopy(text) {
+    var previous = document.activeElement;
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.readOnly = true;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    var copied = false;
+    try {
+      ta.focus();
+      ta.select();
+      copied = document.execCommand("copy") === true;
+    } catch (e) {
+      copied = false;
+    } finally {
+      ta.remove();
+      if (previous && previous.isConnected) { try { previous.focus(); } catch (e) {} }
+    }
+    return copied;
+  }
+  async function writeClipboard(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (e) {
+      // Fall through to the checked legacy copy path.
+    }
+    return fallbackCopy(text);
+  }
+  async function copyText(text, hintEl) {
+    clearCopyFailure();
+    if (hintEl) {
+      hintEl.textContent = "";
+      hintEl.setAttribute("role", "status");
+    }
+    var copied = await writeClipboard(text);
+    if (copied) {
+      if (hintEl) {
+        hintEl.textContent = "복사했습니다: " + text;
+        hintEl.setAttribute("data-empty", "false");
+      }
+    } else {
+      showCopyFailure(text, hintEl || $("screenKeypad"));
+    }
+    return copied;
+  }
   // ── 화면1: ASCII 코드표 렌더 ──────────────────────────────────────────────
   var asciiRows = $("asciiRows"), asciiCopyHint = $("asciiCopyHint");
 
@@ -435,10 +504,12 @@
 
   // copy confirm: the app shows a Snackbar on copy. Flash the button to a check mark briefly
   // so the 3 input output-boxes give the same copy feedback the app gives.
-  function copyWithFeedback(boxEl, btn) {
+  async function copyWithFeedback(boxEl, btn) {
     var t = boxEl.textContent;
     if (!t) return;
-    copyText(t, null);
+    if (btn._restore) clearTimeout(btn._restore);
+    if (btn._label !== undefined) btn.textContent = btn._label;
+    if (!(await copyText(t, null))) return;
     if (btn._label === undefined) btn._label = btn.textContent;
     if (btn._restore) clearTimeout(btn._restore);
     btn.textContent = "✓";
