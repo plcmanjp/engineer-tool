@@ -186,10 +186,15 @@
   <section class="device">
     <div class="device-bar"><a class="back" href="../" aria-label="도구 목록으로">&larr;</a><h2>통신 코드 계산기</h2><button class="helpbtn" id="toolHelpBtn" data-tool-help-open="toolHelp" aria-controls="toolHelp" type="button" aria-haspopup="dialog"><span aria-hidden="true">?</span> 도움말</button></div>
     <div class="screen">
+      <div class="seg-toggle" role="group" aria-label="계산 또는 찾기 모드">
+        <button id="toolCalculate" type="button" aria-pressed="true">계산</button>
+        <button id="toolFind" type="button" aria-pressed="false">찾기</button>
+      </div>
+
       <p class="hint0">CRC를 붙이기 <b>전</b> 바이트만 입력하세요. 결과는 보통 낮은 바이트 먼저(LE)로 붙입니다.</p>
 
       <!-- 알고리즘 -->
-      <div class="zone input">
+      <div class="zone input" id="algoZone">
         <div class="zone-head">
           <div class="h">▶ 알고리즘</div>
           <div class="sub">체크섬 4종, CRC-16 프리셋 4종, 직접 입력</div>
@@ -245,8 +250,23 @@
         <span class="badge warn" id="parseWarn" hidden></span>
       </div>
 
+            <div class="zone input" id="finderZone" style="display:none">
+        <div class="zone-head"><div class="h">체크섬 방식 찾기</div></div>
+        <label class="f">관측 코드 바이트 (HEX)
+          <input id="observed" spellcheck="false" placeholder="예: 37 4B 또는 374B">
+        </label>
+        <p class="hint0">관측 코드는 1 또는 2바이트로 입력하세요. 37 4B와 374B는 같은 바이트 순서입니다.</p>
+        <div class="seg-toggle" role="group" aria-label="관측 코드 바이트 순서">
+          <button id="finderLe" type="button" aria-pressed="true">LE (저→고)</button>
+          <button id="finderBe" type="button" aria-pressed="false">BE (고→저)</button>
+        </div>
+        <p id="findStatus" role="status" aria-live="polite">페이로드와 관측 코드를 입력하세요.</p>
+        <ul id="findMatches" aria-label="일치하는 알고리즘"></ul>
+        <p class="hint0">체크섬 4종과 CRC-16 프리셋 4종을 비교합니다. 여러 항목이 일치하면 모두 표시합니다.</p>
+      </div>
+
       <!-- 결과 -->
-      <div class="zone output">
+      <div class="zone output" id="calcResultZone">
         <div class="zone-head">
           <div class="h">▼ 결과</div>
         </div>
@@ -268,7 +288,7 @@
       </div>
 
       <!-- 검산 -->
-      <div class="zone input">
+      <div class="zone input" id="verifyZone">
         <div class="zone-head">
           <div class="h">▶ 검산 (선택)</div>
           <div class="sub">기대 코드를 넣으면 일치 여부를 봅니다</div>
@@ -528,6 +548,69 @@
     $("orderBe").disabled = !enabled;
   }
 
+  let toolMode = "CALCULATE";
+  function parseObservedBytes(raw) {
+    if (!raw || /[^0-9a-fA-F \t\r\n\v\f,]/.test(raw)) return null;
+    const tokens = raw.split(/[ \t\r\n\v\f,]+/).filter(Boolean);
+    if (tokens.length === 1 && /^[0-9a-fA-F]{4}$/.test(tokens[0])) {
+      return [parseInt(tokens[0].slice(0, 2), 16), parseInt(tokens[0].slice(2), 16)];
+    }
+    if (tokens.length < 1 || tokens.length > 2 || tokens.some(t => !/^[0-9a-fA-F]{2}$/.test(t))) return null;
+    return tokens.map(t => parseInt(t, 16));
+  }
+  function paintToolMode() {
+    const finding = toolMode === "FIND";
+    $("toolCalculate").setAttribute("aria-pressed", String(!finding));
+    $("toolFind").setAttribute("aria-pressed", String(finding));
+    $("algoZone").style.display = finding ? "none" : "";
+    $("paramsZone").style.display = finding || CS.has(algo) ? "none" : "";
+    $("calcResultZone").style.display = finding ? "none" : "";
+    $("verifyZone").style.display = finding ? "none" : "";
+    $("finderZone").style.display = finding ? "" : "none";
+  }
+  function recomputeFinder(bytes, warning) {
+    const observed = parseObservedBytes($("observed").value);
+    const status = $("findStatus"), matches = $("findMatches");
+    matches.replaceChildren();
+    $("finderLe").disabled = !observed || observed.length !== 2;
+    $("finderBe").disabled = !observed || observed.length !== 2;
+    $("finderLe").setAttribute("aria-pressed", String(orderLe));
+    $("finderBe").setAttribute("aria-pressed", String(!orderLe));
+    status.dataset.count = "0";
+    const observedEmpty = /^[ \t\r\n\v\f]*$/.test($("observed").value);
+    if (warning) {
+      status.dataset.state = "INVALID"; status.textContent = "페이로드의 16진수와 4096바이트 이내 길이를 확인하세요."; return;
+    }
+    if (!observedEmpty && !observed) {
+      status.dataset.state = "INVALID"; status.textContent = "관측 코드를 올바른 1 또는 2바이트 16진수로 입력하세요."; return;
+    }
+    if (!bytes.length || observedEmpty) {
+      status.dataset.state = "IDLE"; status.textContent = "페이로드와 관측 코드를 입력하세요."; return;
+    }
+    let count = 0;
+    for (const name of ["SUM8", "SUM16", "XOR8", "LRC8", "MODBUS", "CCITT_FALSE", "XMODEM", "ARC"]) {
+      const result = CS.has(name) ? checksum(bytes, name) : { value: crc16(bytes, PRESETS[name]), width: 2 };
+      if (result.width !== observed.length) continue;
+      const expected = result.width === 1 ? [result.value & 255] : orderLe
+        ? [result.value & 255, (result.value >>> 8) & 255] : [(result.value >>> 8) & 255, result.value & 255];
+      if (!expected.every((byte, i) => byte === observed[i])) continue;
+      const item = document.createElement("li"); item.dataset.algorithm = name;
+      item.textContent = ALGORITHMS[name].label + ": " + formatResult(result.value, result.width).tokens;
+      matches.append(item); count++;
+    }
+    status.dataset.state = "COMPLETE"; status.dataset.count = String(count);
+    status.textContent = count ? count + "개 방식이 일치합니다." : "지원하는 8개 방식과 일치하는 항목이 없습니다. 입력 바이트와 순서를 확인하세요.";
+  }
+  $("toolCalculate").addEventListener("click", () => { toolMode = "CALCULATE"; paintToolMode(); recompute(); });
+  $("toolFind").addEventListener("click", () => { toolMode = "FIND"; paintToolMode(); recompute(); });
+  $("observed").addEventListener("input", recompute);
+  $("finderLe").addEventListener("click", () => {
+    orderLe = true; $("orderLe").setAttribute("aria-pressed", "true"); $("orderBe").setAttribute("aria-pressed", "false"); recompute();
+  });
+  $("finderBe").addEventListener("click", () => {
+    orderLe = false; $("orderLe").setAttribute("aria-pressed", "false"); $("orderBe").setAttribute("aria-pressed", "true"); recompute();
+  });
+
   function recompute() {
     if (algo === "CUSTOM") readCustomFromUi();
     const { bytes, warn } = parsePayload();
@@ -536,6 +619,8 @@
     if (warn) { pw.hidden = false; pw.textContent = warn; }
     else pw.hidden = true;
 
+    if (toolMode === "FIND") { recomputeFinder(bytes, warn); return; }
+    paintToolMode();
     const pe = $("paramErr");
     let value = null, width = 1, hint = "—";
 
@@ -856,6 +941,13 @@
       <li>프레임 규격에 맞는 <b>바이트 순서</b>(LE, BE)를 고르고 결과를 복사합니다.</li>
       <li>확인이 필요하면 기대 코드를 넣어 검산 결과를 봅니다.</li>
     </ol>
+    <h4>체크섬 방식 찾기</h4>
+    <ul>
+      <li>찾기 모드에서 페이로드와 관측 코드를 입력하면 지원하는 8개 방식 중 일치하는 항목을 모두 표시합니다.</li>
+      <li>관측 코드는 1 또는 2바이트 HEX로 입력하세요. LE에서 <code>37 4B</code>와 <code>374B</code>는 같은 바이트 순서입니다.</li>
+      <li>일치하지 않으면 페이로드와 바이트 순서를 확인하세요. 직접 입력 CRC의 파라미터는 탐색하지 않습니다.</li>
+      <li>찾기 모드에서는 잘못된 HEX, 홀수 니블과 4096바이트 초과 입력의 결과를 차단합니다. 계산 모드의 기존 경고와 검산은 유지합니다.</li>
+    </ul>
     <h4>알아두면 좋은 것</h4>
     <ul>
       <li>체크섬, CRC는 데이터가 전송 중 <b>깨졌는지 확인하는 검사값</b>입니다. 암호가 아닙니다.</li>
