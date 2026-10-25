@@ -4,7 +4,7 @@
 <meta name="theme-color" id="themeColor" content="#e9edf1">
 <link rel="icon" href="/engineer-tool/favicon.svg" type="image/svg+xml"><link rel="icon" href="/engineer-tool/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="/engineer-tool/apple-touch-icon.png">
 <title>서보 버퍼 주소 계산 | 엔지니어 도구</title><meta name="description" content="QD75, QD77MS, RD77MS 버퍼 정의를 기종, 카테고리, 명칭, 식별자 또는 주소로 검색합니다."><meta property="og:title" content="서보 버퍼 주소 계산 | PLCManJP 엔지니어 도구"><meta property="og:description" content="QD75, QD77MS, RD77MS 버퍼 정의를 기종, 카테고리, 명칭, 식별자 또는 주소로 검색합니다."><meta property="og:type" content="website"><meta property="og:url" content="https://plcmanjp.github.io/engineer-tool/servo-buffer/"><link rel="canonical" href="https://plcmanjp.github.io/engineer-tool/servo-buffer/">
-<script>(function(){var t="light";try{if(localStorage.getItem("plcmanjp-theme")==="dark")t="dark";}catch(e){}document.documentElement.setAttribute("data-theme",t);document.getElementById("themeColor").setAttribute("content",t==="dark"?"#10161d":"#e9edf1");})();</script>
+
 <style>*{box-sizing:border-box}body{margin:0;background:#f8f9fc;color:#172132;font:16px/1.5 system-ui,sans-serif}main{max-width:700px;margin:auto;padding:20px}h1{font-size:25px}button,input,select{font:inherit;border-radius:12px;padding:12px;border:1px solid #bcc7d6;background:white;color:inherit}button{cursor:pointer;min-height:48px}button:disabled{opacity:.45;cursor:default}label{display:block;margin:12px 0}input,select{width:100%;margin-top:6px}input:focus,button:focus,select:focus{outline:3px solid #5c9ce8;outline-offset:2px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.card{display:block;width:100%;text-align:left;padding:16px;margin:8px 0;border-radius:16px;background:white;border:1px solid #ccd5e1}.badge{font-weight:700;color:#1766b6;font-size:22px}.muted{font-size:14px;color:#536175}.group{display:flex;gap:8px}.active,.primary{background:#1766b6;color:white}.result{background:#e7f1ff;padding:18px;border-radius:16px;overflow-wrap:anywhere}.error{color:#a62d32}code{white-space:pre-wrap;overflow-wrap:anywhere}.note{white-space:pre-wrap}#status{min-height:1.5em}a{color:#1766b6}.toolbar{display:flex;gap:8px;flex-wrap:wrap}</style>
 <style>.result { background:var(--primary-soft); } button,input,select { border-color:var(--line); } .group { gap:8px; } h1.page { margin:0 0 8px; }</style>
 <style>
@@ -46,8 +46,10 @@ canvas { background:#f3f6f9; }
 </style>
 <link rel="stylesheet" href="../assets/tool-shell.css">
 <style>button:not(.active):not(.primary):not([aria-pressed="true"]):not([aria-selected="true"]){background:var(--surface)} .toolhelp-close{min-width:44px;min-height:44px}</style>
-</head><body><div class="topbar"><div class="tw"><div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">서보 버퍼 주소 계산</span></div><button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트"><span aria-hidden="true">&#9788;</span> <span id="themeLbl">라이트</span></button></div></div>
-<div class="wrap"><header><p class="eyebrow">엔지니어 도구</p><h1 class="page">서보 버퍼 주소 계산</h1><p class="lede">QD75, QD77MS, RD77MS 버퍼 정의를 기종, 카테고리, 명칭, 식별자 또는 주소로 검색합니다.</p></header>
+<script src="../assets/theme-init.js"></script>
+<link rel="stylesheet" href="../assets/site-theme.css">
+</head><body><div class="topbar"><div class="tw"><div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">서보 버퍼 주소 계산</span></div><button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.47-.04-.93-.11-1.38A7 7 0 0 1 12 3Z"/></svg><span id="themeLbl">라이트</span></button></div></div>
+<div class="wrap"><header><p class="eyebrow">엔지니어 도구</p><h1 class="page">서보 버퍼 주소 계산</h1><p class="lede">모듈과 버퍼 항목을 선택해 Un\G 주소를 계산하세요.</p></header>
 <div class="device"><div class="device-bar"><a class="back" href="../" aria-label="도구 목록으로">&larr;</a><h2>서보 버퍼 주소 계산</h2><button class="helpbtn" id="toolHelpBtn" data-tool-help-open="toolHelp" aria-controls="toolHelp" type="button" aria-haspopup="dialog"><span aria-hidden="true">?</span> 도움말</button></div><main class="screen"><section id="controls"><div class="group"><button id="small" onclick="group(false)">2 / 4축</button><button id="large" onclick="group(true)">16축</button></div><label>모듈 기종<select id="model" onchange="changeModel()"></select></label><label>명칭, 식별자 또는 주소<input id="query" placeholder="Md.20, speed, G2400, 0x960" oninput="searchChanged()"></label><p class="muted">G 주소는 10진수입니다. 기술명과 적용 조건은 공식 영문으로 표시합니다.</p><label id="category-wrap">카테고리<select id="category" onchange="categoryChanged()"></select></label></section><div id="body"></div><p id="status" role="status"></p></main></div>
 </div>
 <footer class="site"><div class="fl"><a href="/">PLCManJP 홈</a><a class="tool-list-link" href="../">엔지니어 도구 목록으로</a></div></footer>
@@ -90,17 +92,14 @@ window.sbufCatalogApi={catalog,models,resolve,reverse,search};modelControls();re
 
 <script>
 (function(){
- var key="plcmanjp-theme",root=document.documentElement,btn=document.getElementById("themeBtn"),label=document.getElementById("themeLbl");
- function apply(t,save){t=t==="dark"?"dark":"light";root.setAttribute("data-theme",t);label.textContent=t==="dark"?"다크":"라이트";btn.setAttribute("aria-label","테마 전환: 현재 "+label.textContent);document.getElementById("themeColor").setAttribute("content",t==="dark"?"#10161d":"#e9edf1");if(save)try{localStorage.setItem(key,t);}catch(e){}window.dispatchEvent(new Event("resize"));}
- function read(){try{return localStorage.getItem(key)==="dark"?"dark":"light";}catch(e){return root.getAttribute("data-theme")==="dark"?"dark":"light";}}
- btn.addEventListener("click",function(){apply(root.getAttribute("data-theme")==="dark"?"light":"dark",true);});
- window.addEventListener("pageshow",function(){apply(read(),false);});window.addEventListener("storage",function(e){if(e.key===key||e.key===null)apply(read(),false);});apply(root.getAttribute("data-theme"),false);
  var tabs=Array.from(document.querySelectorAll('.tabs button'));
  tabs.forEach(function(tab,index){tab.setAttribute('role','tab');tab.addEventListener('keydown',function(e){var next=e.key==='ArrowRight'?(index+1)%tabs.length:e.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:e.key==='Home'?0:e.key==='End'?tabs.length-1:null;if(next!==null){e.preventDefault();tabs[next].focus();tabs[next].click();}});});
  var err=document.getElementById('err');if(err)err.setAttribute('role','status');
  var out=document.getElementById('out');if(out&&!document.getElementById('count')){out.setAttribute('role','region');out.setAttribute('aria-label','계산 결과');}
 })();
 </script>
-<dialog class="toolhelp" id="toolHelp" data-tool-help aria-labelledby="toolHelpTitle"><div class="toolhelp-head"><h3 id="toolHelpTitle">서보 버퍼 주소 계산 도움말</h3><button class="toolhelp-close" data-tool-help-close type="button" aria-label="닫기">&times;</button></div><div class="toolhelp-body"><h4>이 도구로 할 수 있는 일</h4><p>QD75, QD77MS, RD77MS 버퍼 정의를 기종, 카테고리, 명칭, 식별자 또는 주소로 검색합니다.</p><h4>쓰는 순서</h4><ol><li>2 / 4축 또는16축 그룹을 선택한 뒤 정확한 모듈 기종을 선택하세요.</li><li>시작 I/O를 16진으로 입력합니다. 값은 16의 배수여야 합니다.</li><li>카테고리나 검색 결과에서 항목을 여세요. 필요한 축과 번호를 표시된 범위 안에서 입력하세요.</li><li>Un\G 주소와 G 주소를 확인하고 복사합니다. 모니터 등록은 하지 않습니다.</li></ol><h4>알아두면 좋은 것</h4><p>예: QD77MS4, 시작 I/O 0010, 축2, Md.23은 U1\G906입니다. QD77MS16과 RD77MS는 주소 맵이 다릅니다.</p></div></dialog>
+<dialog class="toolhelp" id="toolHelp" data-tool-help aria-labelledby="toolHelpTitle"><div class="toolhelp-head"><h3 id="toolHelpTitle">서보 버퍼 주소 계산 도움말</h3><button class="toolhelp-close" data-tool-help-close type="button" aria-label="닫기">&times;</button></div><div class="toolhelp-body">
+    <p>QD75, QD77MS, RD77MS 버퍼 정의를 기종, 카테고리, 명칭, 식별자 또는 주소로 검색합니다.</p><h4>사용 방법</h4><ol><li>2 / 4축 또는16축 그룹을 선택한 뒤 정확한 모듈 기종을 선택하세요.</li><li>시작 I/O를 16진으로 입력합니다. 값은 16의 배수여야 합니다.</li><li>카테고리나 검색 결과에서 항목을 여세요. 필요한 축과 번호를 표시된 범위 안에서 입력하세요.</li><li>Un\G 주소와 G 주소를 확인하고 복사합니다. 모니터 등록은 하지 않습니다.</li></ol><h4>참고</h4><p>예: QD77MS4, 시작 I/O 0010, 축2, Md.23은 U1\G906입니다. QD77MS16과 RD77MS는 주소 맵이 다릅니다.</p></div></dialog>
 <script src="../assets/tool-help.js"></script>
+<script src="../assets/theme.js"></script>
 </body></html>

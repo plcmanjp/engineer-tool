@@ -4,7 +4,7 @@
 <meta name="theme-color" id="themeColor" content="#e9edf1">
 <link rel="icon" href="/engineer-tool/favicon.svg" type="image/svg+xml"><link rel="icon" href="/engineer-tool/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="/engineer-tool/apple-touch-icon.png">
 <title>서보 이동시간 | 엔지니어 도구</title><meta name="description" content="정지에서 출발해 목표에서 멈추는 단일 축의 이론 이동시간과 가감속 프로파일을 계산합니다."><meta property="og:title" content="서보 이동시간 | PLCManJP 엔지니어 도구"><meta property="og:description" content="정지에서 출발해 목표에서 멈추는 단일 축의 이론 이동시간과 가감속 프로파일을 계산합니다."><meta property="og:type" content="website"><meta property="og:url" content="https://plcmanjp.github.io/engineer-tool/servo-move-time/"><link rel="canonical" href="https://plcmanjp.github.io/engineer-tool/servo-move-time/">
-<script>(function(){var t="light";try{if(localStorage.getItem("plcmanjp-theme")==="dark")t="dark";}catch(e){}document.documentElement.setAttribute("data-theme",t);document.getElementById("themeColor").setAttribute("content",t==="dark"?"#10161d":"#e9edf1");})();</script>
+
 <style>
   :root {
     --bg: #e9edf1; --surface: #ffffff; --surface-2: #f3f6f9; --ink: #18222e;
@@ -75,14 +75,16 @@ canvas { background:#f3f6f9; }
 </style>
 <link rel="stylesheet" href="../assets/tool-shell.css">
 <style>button:not(.active):not(.primary):not([aria-pressed="true"]):not([aria-selected="true"]){background:var(--surface)} .toolhelp-close{min-width:44px;min-height:44px}</style>
-</head><body><div class="topbar"><div class="tw"><div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">서보 이동시간</span></div><button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트"><span aria-hidden="true">&#9788;</span> <span id="themeLbl">라이트</span></button></div></div>
-<div class="wrap"><header><p class="eyebrow">엔지니어 도구</p><h1 class="page">서보 이동시간</h1><p class="lede">정지에서 출발해 목표에서 멈추는 단일 축의 이론 이동시간과 가감속 프로파일을 계산합니다.</p></header>
+<script src="../assets/theme-init.js"></script>
+<link rel="stylesheet" href="../assets/site-theme.css">
+</head><body><div class="topbar"><div class="tw"><div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">서보 이동시간</span></div><button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.47-.04-.93-.11-1.38A7 7 0 0 1 12 3Z"/></svg><span id="themeLbl">라이트</span></button></div></div>
+<div class="wrap"><header><p class="eyebrow">엔지니어 도구</p><h1 class="page">서보 이동시간</h1><p class="lede">단일 축의 이론 이동시간을 계산하고 가감속 프로파일을 재생하세요.</p></header>
 
   
   <div class="device">
     <div class="device-bar"><a class="back" href="../" aria-label="도구 목록으로">&larr;</a><h2>서보 이동시간</h2><button class="helpbtn" id="toolHelpBtn" data-tool-help-open="toolHelp" aria-controls="toolHelp" type="button" aria-haspopup="dialog"><span aria-hidden="true">?</span> 도움말</button></div>
     <div class="screen">
-      <p class="hint">정지에서 출발해 목표에서 멈추는 이론 이동시간을 계산합니다. 실측값이 아니며 PLC에 쓰지 않습니다.</p>
+      <p class="hint">정지에서 정지까지의 이론 이동시간이며 실측값이 아닙니다. PLC에 쓰지 않습니다.</p>
       <div class="grid2">
         <label class="f">시작 위치 (mm)<input id="start" value="20" inputmode="decimal"></label>
         <label class="f">목표 위치 (mm)<input id="target" value="160" inputmode="decimal"></label>
@@ -336,17 +338,14 @@ render();
 <script>document.getElementById("pos").setAttribute("aria-label","시간에 따른 위치 그래프");document.getElementById("vel").setAttribute("aria-label","시간에 따른 속도 그래프");window.addEventListener("resize",function(){draw("pos",function(q){return q.x;});draw("vel",function(q){return q.v;});});</script>
 <script>
 (function(){
- var key="plcmanjp-theme",root=document.documentElement,btn=document.getElementById("themeBtn"),label=document.getElementById("themeLbl");
- function apply(t,save){t=t==="dark"?"dark":"light";root.setAttribute("data-theme",t);label.textContent=t==="dark"?"다크":"라이트";btn.setAttribute("aria-label","테마 전환: 현재 "+label.textContent);document.getElementById("themeColor").setAttribute("content",t==="dark"?"#10161d":"#e9edf1");if(save)try{localStorage.setItem(key,t);}catch(e){}window.dispatchEvent(new Event("resize"));}
- function read(){try{return localStorage.getItem(key)==="dark"?"dark":"light";}catch(e){return root.getAttribute("data-theme")==="dark"?"dark":"light";}}
- btn.addEventListener("click",function(){apply(root.getAttribute("data-theme")==="dark"?"light":"dark",true);});
- window.addEventListener("pageshow",function(){apply(read(),false);});window.addEventListener("storage",function(e){if(e.key===key||e.key===null)apply(read(),false);});apply(root.getAttribute("data-theme"),false);
  var tabs=Array.from(document.querySelectorAll('.tabs button'));
  tabs.forEach(function(tab,index){tab.setAttribute('role','tab');tab.addEventListener('keydown',function(e){var next=e.key==='ArrowRight'?(index+1)%tabs.length:e.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:e.key==='Home'?0:e.key==='End'?tabs.length-1:null;if(next!==null){e.preventDefault();tabs[next].focus();tabs[next].click();}});});
  var err=document.getElementById('err');if(err)err.setAttribute('role','status');
  var out=document.getElementById('out');if(out&&!document.getElementById('count')){out.setAttribute('role','region');out.setAttribute('aria-label','계산 결과');}
 })();
 </script>
-<dialog class="toolhelp" id="toolHelp" data-tool-help aria-labelledby="toolHelpTitle"><div class="toolhelp-head"><h3 id="toolHelpTitle">서보 이동시간 도움말</h3><button class="toolhelp-close" data-tool-help-close type="button" aria-label="닫기">&times;</button></div><div class="toolhelp-body"><h4>이 도구로 할 수 있는 일</h4><p>정지에서 출발해 목표에서 멈추는 단일 축의 이론 이동시간과 가감속 프로파일을 계산합니다.</p><h4>쓰는 순서</h4><ol><li>시작 위치, 목표 위치, 지령 속도, 최고속도, 공유 속도 단위와 가감속 시간(ms)을 입력합니다.</li><li>가감속 시간은 0과 최고속도 사이를 기준으로 합니다. 지령 속도가 낮거나 이동 거리가 짧으면 실제 구간 시간이 짧아집니다.</li><li>재생은 1배속 시뮬레이션입니다. 일시정지는 가상 시간을 멈추며 실제 감속이 아닙니다.</li><li>입력을 바꾸면 재생이 멈추고 시작 위치에서 다시 계산합니다. PLC에는 쓰지 않습니다.</li></ol><h4>알아두면 좋은 것</h4><p>예: 20 mm에서 160 mm, 지령 속도와 최고속도 40 mm/sec, 가감속 시간 500 ms는 총 4.0초입니다.</p></div></dialog>
+<dialog class="toolhelp" id="toolHelp" data-tool-help aria-labelledby="toolHelpTitle"><div class="toolhelp-head"><h3 id="toolHelpTitle">서보 이동시간 도움말</h3><button class="toolhelp-close" data-tool-help-close type="button" aria-label="닫기">&times;</button></div><div class="toolhelp-body">
+    <p>단일 축의 정지에서 정지까지 이론 이동시간과 가감속 프로파일을 계산합니다.</p><h4>사용 방법</h4><ol><li>시작 위치, 목표 위치, 지령 속도, 최고속도, 공유 속도 단위와 가감속 시간(ms)을 입력합니다.</li><li>가감속 시간은 0과 최고속도 사이를 기준으로 합니다. 지령 속도가 낮거나 이동 거리가 짧으면 실제 구간 시간이 짧아집니다.</li><li>재생은 1배속 시뮬레이션입니다. 일시정지는 가상 시간을 멈추며 실제 감속이 아닙니다.</li><li>입력을 바꾸면 재생이 멈추고 시작 위치에서 다시 계산합니다. PLC에는 쓰지 않습니다.</li></ol><h4>참고</h4><p>예: 20 mm에서 160 mm, 지령 속도와 최고속도 40 mm/sec, 가감속 시간 500 ms는 총 4.0초입니다.</p></div></dialog>
 <script src="../assets/tool-help.js"></script>
+<script src="../assets/theme.js"></script>
 </body></html>

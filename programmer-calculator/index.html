@@ -13,7 +13,7 @@
 <meta property="og:title" content="프로그래머 계산기 | PLCManJP 엔지니어 도구">
 <meta property="og:description" content="현장 엔지니어를 위한 진수 변환 및 비트 연산 계산기입니다.">
 <link rel="canonical" href="https://plcmanjp.github.io/engineer-tool/programmer-calculator/">
-<script>try{var t=localStorage.getItem("plcmanjp-theme"),old=localStorage.getItem("plcmanjp-tool-theme");if(t!=="light"&&t!=="dark"&&(old==="light"||old==="dark")){t=old;localStorage.setItem("plcmanjp-theme",t);localStorage.removeItem("plcmanjp-tool-theme");}if(t!=="light"&&t!=="dark")t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";document.documentElement.setAttribute("data-theme",t);var m=document.getElementById("themeColor");if(m)m.setAttribute("content",t==="dark"?"#10161d":"#e9edf1");}catch(e){document.documentElement.setAttribute("data-theme","light");}</script>
+
 <style>
   :root {
     color-scheme: light;
@@ -114,12 +114,14 @@
   a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
 </style>
+<script src="../assets/theme-init.js"></script>
+<link rel="stylesheet" href="../assets/site-theme.css">
 </head>
 <body>
   <div class="topbar">
     <div class="tw">
       <div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">프로그래머 계산기</span></div>
-      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite">🌓 <span id="themeLbl">라이트</span></button>
+      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.47-.04-.93-.11-1.38A7 7 0 0 1 12 3Z"/></svg><span id="themeLbl">라이트</span></button>
     </div>
   </div>
 
@@ -127,7 +129,7 @@
   <header>
     <p class="eyebrow">엔지니어 도구</p>
     <h1 class="page">프로그래머 계산기</h1>
-    <p class="lede">값 하나를 16진수, 10진수, 8진수, 2진수로 <b>동시에</b> 보여 주는 계산기입니다. 어느 진법에 입력하든 나머지가 즉시 함께 바뀌고, 비트 램프를 눌러 0과 1을 직접 켜고 끌 수 있습니다. AND, OR, 시프트 같은 비트 연산과 BCD 변환도 지원해서, PLC나 마이컴을 디버깅할 때 화면의 Hex 값이 실제로 어떤 비트 조합인지 바로 확인할 수 있습니다. 표기는 GX Works의 K(10진), H(16진) 방식을, 비트 램프는 Device Batch Monitor를 따랐습니다.</p>
+    <p class="lede">진법 변환, 비트 연산과 BCD 변환을 한 화면에서 처리하세요.</p>
   </header>
 
   <section class="device">
@@ -215,16 +217,6 @@
       </div>
     </div>
   </section>
-
-  <ul class="notes">
-
-    <li><b>이럴 때 씁니다</b>: 모니터에 뜬 <b>H0F00</b>이 몇 번 비트인지 확인할 때, 통신 데이터의 바이트 순서를 뒤집어 볼 때, 표시기가 내보내는 <b>BCD</b> 값을 10진수로 되돌릴 때, 특정 비트만 남기는 마스크 값을 만들 때 씁니다.</li>
-
-    <li><b>쓰는 순서</b>: 위쪽에서 비트 폭을 고르고, H, K, O, B 중 입력할 진법 줄을 누른 뒤 값을 넣습니다. 나머지 진법과 비트 램프가 함께 바뀝니다.</li>
-
-    <li><b>자세한 사용법</b>: 계산기 제목 행의 <b>도움말</b> 버튼에서 기능 설명과 키보드 단축키 전체를 볼 수 있습니다.</li>
-
-  </ul>
 </div>
 
 <footer class="site">
@@ -240,15 +232,9 @@
     <button class="toolhelp-close" id="toolHelpClose" data-tool-help-close type="button" aria-label="닫기">&times;</button>
   </div>
   <div class="toolhelp-body">
-    <h4>이 도구로 할 수 있는 일</h4>
-    <ul>
-      <li>값 하나를 <b>16진수(H), 10진수(K), 8진수(O), 2진수(B)</b>로 동시에 봅니다. 한 줄을 누르면 그 진법으로 입력할 수 있고, 나머지 줄은 자동으로 바뀝니다.</li>
-      <li><b>비트 램프</b>를 눌러 각 비트를 직접 켜고 끕니다. 어떤 비트가 서 있는지 눈으로 바로 확인할 수 있습니다.</li>
-      <li><b>비트 폭</b>(4bit, 8bit, WORD, DWORD, QWORD)을 골라 PLC 디바이스 크기에 맞춥니다.</li>
-      <li>AND, OR, XOR, NOT, 시프트, 회전 같은 <b>비트 연산</b>과 <b>BCD 변환</b>을 지원합니다.</li>
-    </ul>
+    <p>진법 변환, 비트 연산과 BIN↔BCD 변환을 지원합니다.</p>
 
-    <h4>알아두면 좋은 것</h4>
+    <h4>참고</h4>
     <ul>
       <li><b>부호</b> 버튼을 켜면 10진수(K)를 음수까지 표시합니다. 끄면 0 이상만 표시합니다.</li>
       <li><b>비트 폭을 줄이면</b> 넘치는 상위 비트가 잘립니다. 늘릴 때는 부호 설정에 따라 부호 확장 또는 0 확장을 적용합니다.</li>
@@ -904,28 +890,8 @@
 })();
 </script>
 
-<script>
-(function(){
-  var KEY="plcmanjp-theme", order=["light","dark"], lbl={"light":"라이트","dark":"다크"};
-  var root=document.documentElement, btn=document.getElementById("themeBtn"), lblEl=document.getElementById("themeLbl");
-  var cur=root.getAttribute("data-theme")==="dark"?"dark":"light";
-  function readTheme(){
-    try{var t=localStorage.getItem(KEY);return t==="dark"?"dark":"light";}catch(e){return root.getAttribute("data-theme")==="dark"?"dark":"light";}
-  }
-  function apply(t,save){
-    t=t==="dark"?"dark":"light"; root.setAttribute("data-theme",t);
-    cur=t;
-    if(lblEl) lblEl.textContent=lbl[t];
-    if(btn) btn.setAttribute("aria-label","테마 전환: 현재 "+lbl[t]);
-    if(save!==false)try{localStorage.setItem(KEY,t);}catch(e){}
-    var event=document.createEvent("Event"); event.initEvent("resize",false,false); window.dispatchEvent(event);
-  }
-  if(btn) btn.addEventListener("click",function(){apply(order[(order.indexOf(cur)+1)%order.length]);});
-  window.addEventListener("pageshow",function(){apply(readTheme(),false);});
-  window.addEventListener("storage",function(e){if(e.key===KEY)apply(e.newValue==="dark"?"dark":"light",false);});
-  apply(cur,false);
-})();
-</script>
+
 <script src="../assets/tool-help.js"></script>
+<script src="../assets/theme.js"></script>
 </body>
 </html>

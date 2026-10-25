@@ -4,7 +4,7 @@
 <meta name="theme-color" id="themeColor" content="#e9edf1">
 <link rel="icon" href="/engineer-tool/favicon.svg" type="image/svg+xml"><link rel="icon" href="/engineer-tool/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="/engineer-tool/apple-touch-icon.png">
 <title>인버터 컨베이어 속도 | 엔지니어 도구</title><meta name="description" content="인버터 주파수와 모터 극 수, 감속비, 롤러 직경으로 컨베이어 선속도를 계산합니다."><meta property="og:title" content="인버터 컨베이어 속도 | PLCManJP 엔지니어 도구"><meta property="og:description" content="인버터 주파수와 모터 극 수, 감속비, 롤러 직경으로 컨베이어 선속도를 계산합니다."><meta property="og:type" content="website"><meta property="og:url" content="https://plcmanjp.github.io/engineer-tool/inverter-conveyor/"><link rel="canonical" href="https://plcmanjp.github.io/engineer-tool/inverter-conveyor/">
-<script>(function(){var t="light";try{if(localStorage.getItem("plcmanjp-theme")==="dark")t="dark";}catch(e){}document.documentElement.setAttribute("data-theme",t);document.getElementById("themeColor").setAttribute("content",t==="dark"?"#10161d":"#e9edf1");})();</script>
+
 <style>
   :root {
     --bg: #e9edf1; --surface: #ffffff; --surface-2: #f3f6f9; --ink: #18222e;
@@ -76,8 +76,10 @@ canvas { background:#f3f6f9; }
 </style>
 <link rel="stylesheet" href="../assets/tool-shell.css">
 <style>button:not(.active):not(.primary):not([aria-pressed="true"]):not([aria-selected="true"]){background:var(--surface)} .toolhelp-close{min-width:44px;min-height:44px}</style>
-</head><body><div class="topbar"><div class="tw"><div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">인버터 컨베이어 속도</span></div><button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트"><span aria-hidden="true">&#9788;</span> <span id="themeLbl">라이트</span></button></div></div>
-<div class="wrap"><header><p class="eyebrow">엔지니어 도구</p><h1 class="page">인버터 컨베이어 속도</h1><p class="lede">인버터 주파수와 모터 극 수, 감속비, 롤러 직경으로 컨베이어 선속도를 계산합니다.</p></header>
+<script src="../assets/theme-init.js"></script>
+<link rel="stylesheet" href="../assets/site-theme.css">
+</head><body><div class="topbar"><div class="tw"><div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">인버터 컨베이어 속도</span></div><button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.47-.04-.93-.11-1.38A7 7 0 0 1 12 3Z"/></svg><span id="themeLbl">라이트</span></button></div></div>
+<div class="wrap"><header><p class="eyebrow">엔지니어 도구</p><h1 class="page">인버터 컨베이어 속도</h1><p class="lede">주파수와 컨베이어 선속도를 양방향으로 계산하세요.</p></header>
 
   
   <div class="device">
@@ -87,7 +89,7 @@ canvas { background:#f3f6f9; }
       <button type="button" id="tabRev" aria-selected="false">속도에서 Hz</button>
     </div>
     <div class="screen">
-      <p class="hint">주파수와 극 수, 감속비, 롤러 직경으로 선속도를 계산합니다. 인버터에 값을 쓰지 않습니다.</p>
+      <p class="hint">주파수, 극 수, 감속비, 롤러 직경으로 선속도를 계산합니다. 인버터 쓰기는 하지 않습니다.</p>
       <label class="f" id="freqWrap">주파수 (Hz)<input id="freq" value="50" inputmode="decimal"></label>
       <div class="grid2" id="spdWrap" hidden>
         <label class="f">목표 속도<input id="target" value="785.3982" inputmode="decimal"></label>
@@ -206,17 +208,14 @@ render();
 
 <script>
 (function(){
- var key="plcmanjp-theme",root=document.documentElement,btn=document.getElementById("themeBtn"),label=document.getElementById("themeLbl");
- function apply(t,save){t=t==="dark"?"dark":"light";root.setAttribute("data-theme",t);label.textContent=t==="dark"?"다크":"라이트";btn.setAttribute("aria-label","테마 전환: 현재 "+label.textContent);document.getElementById("themeColor").setAttribute("content",t==="dark"?"#10161d":"#e9edf1");if(save)try{localStorage.setItem(key,t);}catch(e){}window.dispatchEvent(new Event("resize"));}
- function read(){try{return localStorage.getItem(key)==="dark"?"dark":"light";}catch(e){return root.getAttribute("data-theme")==="dark"?"dark":"light";}}
- btn.addEventListener("click",function(){apply(root.getAttribute("data-theme")==="dark"?"light":"dark",true);});
- window.addEventListener("pageshow",function(){apply(read(),false);});window.addEventListener("storage",function(e){if(e.key===key||e.key===null)apply(read(),false);});apply(root.getAttribute("data-theme"),false);
  var tabs=Array.from(document.querySelectorAll('.tabs button'));
  tabs.forEach(function(tab,index){tab.setAttribute('role','tab');tab.addEventListener('keydown',function(e){var next=e.key==='ArrowRight'?(index+1)%tabs.length:e.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:e.key==='Home'?0:e.key==='End'?tabs.length-1:null;if(next!==null){e.preventDefault();tabs[next].focus();tabs[next].click();}});});
  var err=document.getElementById('err');if(err)err.setAttribute('role','status');
  var out=document.getElementById('out');if(out&&!document.getElementById('count')){out.setAttribute('role','region');out.setAttribute('aria-label','계산 결과');}
 })();
 </script>
-<dialog class="toolhelp" id="toolHelp" data-tool-help aria-labelledby="toolHelpTitle"><div class="toolhelp-head"><h3 id="toolHelpTitle">인버터 컨베이어 속도 도움말</h3><button class="toolhelp-close" data-tool-help-close type="button" aria-label="닫기">&times;</button></div><div class="toolhelp-body"><h4>이 도구로 할 수 있는 일</h4><p>인버터 주파수와 모터 극 수, 감속비, 롤러 직경으로 컨베이어 선속도를 계산합니다.</p><h4>쓰는 순서</h4><ol><li>Hz에서 속도 또는 속도에서 Hz 탭을 고릅니다.</li><li>주파수 또는 목표 속도를 입력합니다. 역산 단위는 mm/s, m/min, 모터 rpm, 출력축 rpm 중에서 선택하세요.</li><li>슬립은 선택입니다. 비우거나 0이면 동기 속도로 계산합니다.</li><li>모터 rpm, 출력축 rpm, mm/s, m/min을 확인합니다. 역산 탭은 필요 Hz도 보여 줍니다.</li></ol><h4>알아두면 좋은 것</h4><p>예: 50 Hz, 4극, 감속비 10, 직경 100 mm, 슬립 0은 모터 1500 rpm, 선속도 785.3982 mm/s입니다.</p></div></dialog>
+<dialog class="toolhelp" id="toolHelp" data-tool-help aria-labelledby="toolHelpTitle"><div class="toolhelp-head"><h3 id="toolHelpTitle">인버터 컨베이어 속도 도움말</h3><button class="toolhelp-close" data-tool-help-close type="button" aria-label="닫기">&times;</button></div><div class="toolhelp-body">
+    <p>주파수, 모터 극 수, 감속비, 롤러 직경으로 컨베이어 선속도를 계산합니다.</p><h4>사용 방법</h4><ol><li>Hz에서 속도 또는 속도에서 Hz 탭을 고릅니다.</li><li>주파수 또는 목표 속도를 입력합니다. 역산 단위는 mm/s, m/min, 모터 rpm, 출력축 rpm 중에서 선택하세요.</li><li>슬립은 선택입니다. 비우거나 0이면 동기 속도로 계산합니다.</li><li>모터 rpm, 출력축 rpm, mm/s, m/min을 확인합니다. 역산 탭은 필요 Hz도 보여 줍니다.</li></ol><h4>참고</h4><p>예: 50 Hz, 4극, 감속비 10, 직경 100 mm, 슬립 0은 모터 1500 rpm, 선속도 785.3982 mm/s입니다.</p></div></dialog>
 <script src="../assets/tool-help.js"></script>
+<script src="../assets/theme.js"></script>
 </body></html>

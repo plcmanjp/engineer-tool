@@ -13,7 +13,7 @@
 <meta property="og:title" content="시리얼 통신 속도 계산기 | PLCManJP 엔지니어 도구">
 <meta property="og:description" content="현장 엔지니어를 위한 시리얼 통신 프레임 전송시간 계산기입니다.">
 <link rel="canonical" href="https://plcmanjp.github.io/engineer-tool/serial-time/">
-<script>try{var t=localStorage.getItem("plcmanjp-theme"),old=localStorage.getItem("plcmanjp-tool-theme");if(t!=="light"&&t!=="dark"&&(old==="light"||old==="dark")){t=old;localStorage.setItem("plcmanjp-theme",t);localStorage.removeItem("plcmanjp-tool-theme");}if(t!=="light"&&t!=="dark")t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";document.documentElement.setAttribute("data-theme",t);var m=document.getElementById("themeColor");if(m)m.setAttribute("content",t==="dark"?"#10161d":"#e9edf1");}catch(e){document.documentElement.setAttribute("data-theme","light");}</script>
+
 <style>
   :root {
     color-scheme: light;
@@ -124,13 +124,15 @@
   a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
 </style>
+<script src="../assets/theme-init.js"></script>
+<link rel="stylesheet" href="../assets/site-theme.css">
 </head>
 <body>
 
 <div class="topbar">
     <div class="tw">
       <div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">시리얼 통신 속도</span></div>
-      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite">🌓 <span id="themeLbl">라이트</span></button>
+      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.47-.04-.93-.11-1.38A7 7 0 0 1 12 3Z"/></svg><span id="themeLbl">라이트</span></button>
     </div>
   </div>
 
@@ -138,13 +140,13 @@
   <header>
     <p class="eyebrow">엔지니어 도구</p>
     <h1 class="page">시리얼 통신 속도 계산기</h1>
-    <p class="lede">프레임 하나가 선로를 지나가는 데 걸리는 시간을 계산합니다. 통신속도와 UART 설정(데이터 비트, 패리티, 정지 비트), 실제 보낼 바이트열을 넣으면 첫 시작 비트부터 마지막 정지 비트까지의 <b>이론상 전송시간</b>이 나옵니다. 통신 타임아웃 값을 정하거나 폴링 주기, Modbus RTU 프레임 점유시간을 잡을 때 씁니다. RS-485 2선식은 송수신 전환 지연까지 더해 총시간을 보여 줍니다.</p>
+    <p class="lede">UART 설정과 전송 데이터로 시리얼 통신의 선로 전송시간을 계산하세요.</p>
   </header>
 
   <section class="device">
     <div class="device-bar"><a class="back" href="../" aria-label="도구 목록으로">&larr;</a><h2>시리얼 통신 속도 계산기</h2><button class="helpbtn" id="toolHelpBtn" data-tool-help-open="toolHelp" aria-controls="toolHelp" type="button" aria-haspopup="dialog"><span aria-hidden="true">?</span> 도움말</button></div>
     <div class="screen">
-      <p class="hint0">첫 시작 비트 송신 시작부터 마지막 정지 비트 송신 완료까지의 시간입니다. 장치 <b>응답시간이 아닙니다</b>.</p>
+      <p class="hint0">첫 시작 비트부터 마지막 정지 비트까지의 이론 전송시간입니다. OS 버퍼 대기와 장치 응답시간은 제외합니다.</p>
 
       <!-- 물리 인터페이스 -->
       <div class="zone input">
@@ -276,16 +278,6 @@
       </div>
     </div>
   </section>
-
-  <ul class="notes">
-
-    <li><b>이럴 때 씁니다</b>: 무수순 통신의 타임아웃을 몇 ms로 잡을지 정할 때, 슬레이브 여러 대를 도는 폴링 주기를 계산할 때, 통신속도를 올리면 실제로 얼마나 빨라지는지 비교할 때 씁니다.</li>
-
-    <li><b>쓰는 순서</b>: 인터페이스와 통신속도, UART 설정을 고르고, 실제 보낼 프레임을 HEX 또는 ASCII로 넣습니다.</li>
-
-    <li><b>자세한 사용법</b>: 계산기 제목 행의 <b>도움말</b> 버튼에서 전체 설명을 볼 수 있습니다.</li>
-
-  </ul>
 </div>
 
 <footer class="site">
@@ -596,49 +588,16 @@
   recompute();
 })();
 </script>
-<script>
-(function(){
-  var KEY="plcmanjp-theme", order=["light","dark"], lbl={"light":"라이트","dark":"다크"};
-  var root=document.documentElement, btn=document.getElementById("themeBtn"), lblEl=document.getElementById("themeLbl");
-  var cur=root.getAttribute("data-theme")==="dark"?"dark":"light";
-  function readTheme(){
-    try{var t=localStorage.getItem(KEY);return t==="dark"?"dark":"light";}catch(e){return root.getAttribute("data-theme")==="dark"?"dark":"light";}
-  }
-  function apply(t,save){
-    t=t==="dark"?"dark":"light"; root.setAttribute("data-theme",t);
-    cur=t;
-    if(lblEl) lblEl.textContent=lbl[t];
-    if(btn) btn.setAttribute("aria-label","테마 전환: 현재 "+lbl[t]);
-    if(save!==false)try{localStorage.setItem(KEY,t);}catch(e){}
-    var event=document.createEvent("Event"); event.initEvent("resize",false,false); window.dispatchEvent(event);
-  }
-  if(btn) btn.addEventListener("click",function(){apply(order[(order.indexOf(cur)+1)%order.length]);});
-  window.addEventListener("pageshow",function(){apply(readTheme(),false);});
-  window.addEventListener("storage",function(e){if(e.key===KEY)apply(e.newValue==="dark"?"dark":"light",false);});
-  apply(cur,false);
-})();
-</script>
+
 <dialog class="toolhelp" id="toolHelp" data-tool-help aria-labelledby="toolHelpTitle">
   <div class="toolhelp-head">
     <h3 id="toolHelpTitle">시리얼 통신 속도 계산기 도움말</h3>
     <button class="toolhelp-close" id="toolHelpClose" data-tool-help-close type="button" aria-label="닫기">&times;</button>
   </div>
   <div class="toolhelp-body">
-    <h4>이 도구로 할 수 있는 일</h4>
-    <ul>
-      <li>프레임을 선로에 흘려보내는 <b>순수 전송시간</b>을 계산합니다.</li>
-      <li>프레임 전, 후 지연, 바이트 사이 지연, RS-485 <b>송수신 전환 지연</b>을 더한 예상 총시간을 봅니다.</li>
-      <li>문자 전송률(cps)과 <b>데이터 효율</b>(실제 데이터 비트 비중)을 함께 보여 줍니다.</li>
-    </ul>
-    <h4>쓰는 순서</h4>
-    <ol>
-      <li><b>인터페이스</b>(RS-232, RS-422, RS-485)와 배선 방식을 고릅니다.</li>
-      <li><b>통신속도</b>를 고릅니다. 목록에 없으면 직접 입력을 고르고 값을 넣습니다.</li>
-      <li><b>UART 설정</b>(데이터 비트, 패리티, 정지 비트)을 장비 설정과 똑같이 맞춥니다.</li>
-      <li>실제 보낼 <b>프레임</b>을 HEX 또는 ASCII로 넣습니다.</li>
-      <li>필요하면 <b>고급 설정</b>을 열어 지연 시간을 넣습니다.</li>
-    </ol>
-    <h4>알아두면 좋은 것</h4>
+    <p>통신속도/UART 설정/바이트 수로 시리얼 프레임의 선로 전송시간을 계산합니다.</p>
+    <h4>사용 방법</h4><ol><li>인터페이스(RS-232 / RS-422 / RS-485)를 고릅니다. RS-485는 2선식/4선식을 고릅니다.</li><li>통신속도와 UART 프레임(데이터 비트/패리티/정지 비트)을 맞춥니다.</li><li>HEX 또는 ASCII로 프레임을 넣으면 바이트 수와 시간이 바로 나옵니다. 프레임은 4096바이트까지이고, 넘으면 오류로 처리합니다.</li><li>고급 설정에서 지연(프레임 전/바이트 사이/프레임 후, RS-485 전환)을 더할 수 있습니다. 결과는 이론상 선로 시간이며 장치 응답시간이 아닙니다.</li></ol>
+    <h4>참고</h4>
     <ul>
       <li>계산식: 문자당 비트 = 1(시작) + 데이터 + 패리티(0 또는 1) + 정지, 전송시간 = 총 비트 수 &divide; 통신속도.</li>
       <li><b>선로 전송시간만</b> 계산합니다. 상대 장비가 응답을 만드는 처리 시간은 포함하지 않으므로, 타임아웃은 여유를 두고 잡습니다.</li>
@@ -649,5 +608,6 @@
   </div>
 </dialog>
 <script src="../assets/tool-help.js"></script>
+<script src="../assets/theme.js"></script>
 </body>
 </html>

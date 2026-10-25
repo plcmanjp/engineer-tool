@@ -13,7 +13,7 @@
 <meta property="og:title" content="UVW 스테이지 계산기 | PLCManJP 엔지니어 도구">
 <meta property="og:description" content="정렬 보정값과 UVW 축 이송량을 서로 변환하는 현장 엔지니어용 계산기입니다.">
 <link rel="canonical" href="https://plcmanjp.github.io/engineer-tool/uvw-stage/">
-<script>try{var t=localStorage.getItem("plcmanjp-theme"),old=localStorage.getItem("plcmanjp-tool-theme");if(t!=="light"&&t!=="dark"&&(old==="light"||old==="dark")){t=old;localStorage.setItem("plcmanjp-theme",t);localStorage.removeItem("plcmanjp-tool-theme");}if(t!=="light"&&t!=="dark")t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";document.documentElement.setAttribute("data-theme",t);var m=document.getElementById("themeColor");if(m)m.setAttribute("content",t==="dark"?"#10161d":"#e9edf1");}catch(e){document.documentElement.setAttribute("data-theme","light");}</script>
+
 <style>
   :root {
     color-scheme: light;
@@ -130,13 +130,15 @@
   a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
 </style>
+<script src="../assets/theme-init.js"></script>
+<link rel="stylesheet" href="../assets/site-theme.css">
 </head>
 <body>
 
 <div class="topbar">
     <div class="tw">
       <div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">UVW 스테이지</span></div>
-      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite">🌓 <span id="themeLbl">라이트</span></button>
+      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.47-.04-.93-.11-1.38A7 7 0 0 1 12 3Z"/></svg><span id="themeLbl">라이트</span></button>
     </div>
   </div>
 
@@ -144,13 +146,13 @@
   <header>
     <p class="eyebrow">엔지니어 도구</p>
     <h1 class="page">UVW 스테이지 계산기</h1>
-    <p class="lede">비전이 잡은 정렬 오차를 UVW 스테이지 각 축이 얼마나 움직여야 하는지로 바꿔 줍니다. 보정값 dX, dY, dT와 축 현재값을 넣으면 축별 이송량과 절대 목표값, 스트로크 리미트 초과 여부가 나옵니다. 반대로 축 현재값만 알 때 스테이지의 X, Y, T를 되짚는 역산도 같은 화면에서 합니다. 회전 성분은 근사식이 아니라 정확식으로 계산하므로 각도가 커져도 값이 어긋나지 않습니다.</p>
+    <p class="lede">스테이지 보정값과 축 이송량을 변환하고 스트로크 한계를 확인하세요.</p>
   </header>
 
   <section class="device">
     <div class="device-bar"><a class="back" href="../" aria-label="도구 목록으로">&larr;</a><h2>UVW 스테이지 계산기</h2><button class="helpbtn" id="toolHelpBtn" data-tool-help-open="toolHelp" aria-controls="toolHelp" type="button" aria-haspopup="dialog"><span aria-hidden="true">?</span> 도움말</button></div>
     <div class="screen">
-      <p class="hint0">스테이지 보정값(X, Y, T)과 각 축 이송량을 서로 변환합니다. 계산 전용이며 축을 실제로 움직이지는 않습니다.</p>
+      <p class="hint0">보정값(X, Y, T)과 축 이송량을 상호 변환합니다. PLC 통신과 축 구동은 하지 않습니다.</p>
 
       <!-- 공유 파라미터 카드 (두 탭이 함께 쓴다) -->
       <div class="zone params">
@@ -292,16 +294,6 @@
       </div>
     </div>
   </section>
-
-  <ul class="notes">
-
-    <li><b>이럴 때 씁니다</b>: 래더에 정렬 연산을 넣기 전에 기구 제원과 수식이 맞는지 확인할 때, 실기 연산 결과를 현장에서 검산할 때, 원점 복귀 없이 축 현재값만으로 스테이지 위치를 알아야 할 때 씁니다.</li>
-
-    <li><b>쓰는 순서</b>: 파라미터를 펼쳐 축 수와 반경, 축별 각도와 구동방향을 맞춘 뒤 보정값이나 축 현재값을 넣습니다.</li>
-
-    <li><b>자세한 사용법</b>: 계산기 제목 행의 <b>도움말</b> 버튼에서 전체 설명을 볼 수 있습니다.</li>
-
-  </ul>
 </div>
 
 <footer class="site">
@@ -1235,49 +1227,16 @@
   recompute();
 })();
 </script>
-<script>
-(function(){
-  var KEY="plcmanjp-theme", order=["light","dark"], lbl={"light":"라이트","dark":"다크"};
-  var root=document.documentElement, btn=document.getElementById("themeBtn"), lblEl=document.getElementById("themeLbl");
-  var cur=root.getAttribute("data-theme")==="dark"?"dark":"light";
-  function readTheme(){
-    try{var t=localStorage.getItem(KEY);return t==="dark"?"dark":"light";}catch(e){return root.getAttribute("data-theme")==="dark"?"dark":"light";}
-  }
-  function apply(t,save){
-    t=t==="dark"?"dark":"light"; root.setAttribute("data-theme",t);
-    cur=t;
-    if(lblEl) lblEl.textContent=lbl[t];
-    if(btn) btn.setAttribute("aria-label","테마 전환: 현재 "+lbl[t]);
-    if(save!==false)try{localStorage.setItem(KEY,t);}catch(e){}
-    var event=document.createEvent("Event"); event.initEvent("resize",false,false); window.dispatchEvent(event);
-  }
-  if(btn) btn.addEventListener("click",function(){apply(order[(order.indexOf(cur)+1)%order.length]);});
-  window.addEventListener("pageshow",function(){apply(readTheme(),false);});
-  window.addEventListener("storage",function(e){if(e.key===KEY)apply(e.newValue==="dark"?"dark":"light",false);});
-  apply(cur,false);
-})();
-</script>
+
 <dialog class="toolhelp" id="toolHelp" data-tool-help aria-labelledby="toolHelpTitle">
   <div class="toolhelp-head">
     <h3 id="toolHelpTitle">UVW 스테이지 계산기 도움말</h3>
     <button class="toolhelp-close" id="toolHelpClose" data-tool-help-close type="button" aria-label="닫기">&times;</button>
   </div>
   <div class="toolhelp-body">
-    <h4>이 도구로 할 수 있는 일</h4>
-    <ul>
-      <li>스테이지 보정값(X, Y, T)을 각 축 이송량으로 바꾸고, 축 현재값에서 스테이지 위치를 되짚습니다.</li>
-      <li>절대 목표값이 <b>스트로크 리미트</b>를 벗어나는지 이송 전에 확인합니다.</li>
-      <li>4축이면 대칭 쌍 두 경로로 회전각을 따로 구해 <b>교차 검증</b> 편차를 보여 줍니다.</li>
-    </ul>
-    <h4>쓰는 순서</h4>
-    <ol>
-      <li>파라미터를 펼쳐 3축과 4축 중 하나를 고르고, 반경 R과 각 축의 각도, 구동방향을 설정합니다.</li>
-      <li>스트로크 최소와 최대는 선택 입력입니다. 최소가 최대보다 작은 축만 리미트를 확인합니다.</li>
-      <li>이송량 탭에서 보정값 dX, dY, dT와 축 현재값을 넣으면 각 축의 이송량과 목표값이 나옵니다.</li>
-      <li>역산 탭에서 축 현재값과 기준값을 넣으면 스테이지 X, Y, T가 나옵니다.</li>
-      <li><b>왕복 검산</b>은 결과를 다시 반대 방향으로 계산해 대조합니다.</li>
-    </ol>
-    <h4>알아두면 좋은 것</h4>
+    <p>보정값(X, Y, T)으로 축 이송량을 계산하고, 축 현재값으로 위치를 역산합니다.</p>
+    <h4>사용 방법</h4><ol><li>파라미터를 펼쳐 3축과 4축 중 하나를 고르고, 반경 R과 각 축의 각도, 구동방향을 설정합니다.</li><li>스트로크 최소와 최대는 선택 입력입니다. 최소가 최대보다 작은 축만 리미트를 확인합니다.</li><li>이송량 탭에서 보정값 dX, dY, dT와 축 현재값을 넣으면 각 축의 이송량과 목표값이 나옵니다.</li><li>역산 탭에서 축 현재값과 기준값을 넣으면 스테이지 X, Y, T가 나옵니다. 왕복 검산은 결과를 다시 정방향으로 계산해 대조합니다.</li><li>계산 전제: 회전은 근사식이 아니라 정확식을 쓰므로 각도가 커도 값이 맞고, 각 축은 자기 구동방향(X 또는 Y)으로만 움직입니다.</li></ol>
+    <h4>참고</h4>
     <ul>
       <li>계산 전제: 회전은 근사식이 아니라 정확식을 쓰므로 각도가 커도 값이 맞고, 각 축은 자기 구동방향(X 또는 Y)으로만 움직입니다.</li>
       <li>X 구동축의 이송량에는 dY가 들어가지 않고, Y 구동축의 이송량에는 dX가 들어가지 않습니다. 축이 그 방향으로 구속돼 있기 때문입니다.</li>
@@ -1288,5 +1247,6 @@
   </div>
 </dialog>
 <script src="../assets/tool-help.js"></script>
+<script src="../assets/theme.js"></script>
 </body>
 </html>

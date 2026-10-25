@@ -12,24 +12,28 @@ PLC와 자동화 실무에서 자주 사용하는 계산과 변환을 브라우�
 
 ## 제공 도구
 
-| 도구 | 주요 기능 |
-|---|---|
-| [프로그래머 계산기](https://plcmanjp.github.io/engineer-tool/programmer-calculator/) | 진법 변환과 비트 연산 |
-| [전자기어비 계산기](https://plcmanjp.github.io/engineer-tool/gear-ratio/) | 모터와 기구 조건에 맞는 전자기어비 계산 |
-| [원둘레 계산기](https://plcmanjp.github.io/engineer-tool/circumference/) | 지름, 원주와 이동량 계산 |
-| [삼각함수 계산기](https://plcmanjp.github.io/engineer-tool/trigonometry/) | 직각삼각형의 변과 각도 계산 |
-| [ASCII 코드표와 입력기](https://plcmanjp.github.io/engineer-tool/ascii/) | ASCII 문자와 코드 확인 |
-| [아날로그 스케일 변환](https://plcmanjp.github.io/engineer-tool/analog-scale/) | 원시값과 공학 단위 변환 |
-| [통신 코드 계산기](https://plcmanjp.github.io/engineer-tool/comm-code/) | LRC, BCC와 체크섬 계산 |
-| [시리얼 통신 속도 계산기](https://plcmanjp.github.io/engineer-tool/serial-time/) | 프레임 전송 시간과 처리량 계산 |
-| [UVW 스테이지 계산기](https://plcmanjp.github.io/engineer-tool/uvw-stage/) | UVW 스테이지 좌표와 모터 이동량 계산 |
-| [Modbus RTU 프레임 생성기](https://plcmanjp.github.io/engineer-tool/modbus-rtu/) | 8개 기능 코드의 요청 프레임과 CRC 계산 |
-| [인버터 컨베이어 속도](https://plcmanjp.github.io/engineer-tool/inverter-conveyor/) | 주파수와 이송속도 양방향 계산 |
-| [서보 이동시간](https://plcmanjp.github.io/engineer-tool/servo-move-time/) | 최고속도 기준 가감속 시간과 프로파일 재생 |
-| [서보 이상코드 검색](https://plcmanjp.github.io/engineer-tool/servo-alarm/) | 5기종 오류/경고/상세코드 2349항목과 조치사항 |
-| [서보 버퍼 주소 계산](https://plcmanjp.github.io/engineer-tool/servo-buffer/) | 8기종 버퍼 2696정의의 검색과 주소 계산 |
+아래 목록은 로컬 구현 및 검증 후보인 16페이지입니다. 현재 공개 서비스는 14페이지이며 신규 SM/SD와 인버터 이상코드 페이지는 공개 전입니다.
 
-수치/기하, 서보/모션, 통신/코드 카테고리로 14개 페이지를 선택합니다. 앱의 ASCII 코드표와 입력기는 웹 한 페이지에 함께 제공합니다.
+| 분류 | 도구 | 주요 기능 |
+|---|---|---|
+| 수치/기하 | [프로그래머 계산기](programmer-calculator/) | 진법 변환과 비트 연산 |
+| 수치/기하 | [원둘레 계산기](circumference/) | 지름, 반지름, 원주와 면적 변환 |
+| 수치/기하 | [삼각함수 계산기](trigonometry/) | 각도, 변의 길이와 좌표 계산 |
+| 수치/기하 | [아날로그 스케일 변환](analog-scale/) | 원시값과 공학 단위 변환 |
+| PLC DB | [SM/SD 주소 검색](special-device/) | 주소와 의미로 특수 디바이스 검색 |
+| PLC DB | [서보 이상코드 검색](servo-alarm/) | 이상코드의 의미와 확인사항 검색 |
+| PLC DB | [서보 버퍼 주소 계산](servo-buffer/) | 모듈과 축에 맞는 버퍼 주소 계산 |
+| PLC DB | [인버터 이상코드 검색](inverter-alarm/) | 기종과 표시 코드로 의미 검색 |
+| 서보/모션 | [전자기어비 계산기](gear-ratio/) | 기구 조건에 맞는 전자기어비 계산 |
+| 서보/모션 | [UVW 스테이지 계산기](uvw-stage/) | 위치와 회전에 따른 축 이동량 계산 |
+| 서보/모션 | [인버터 컨베이어 속도](inverter-conveyor/) | 주파수와 이송속도 양방향 계산 |
+| 서보/모션 | [서보 이동시간](servo-move-time/) | 속도와 가감속 조건에 따른 이동시간 계산 |
+| 통신/코드 | [ASCII 코드표와 입력기](ascii/) | 문자와 ASCII 코드 검색 및 변환 |
+| 통신/코드 | [통신 코드 계산기](comm-code/) | 체크섬과 CRC-16 계산 및 방식 찾기 |
+| 통신/코드 | [시리얼 통신 속도 계산기](serial-time/) | 통신 조건에 따른 이론 전송시간 계산 |
+| 통신/코드 | [Modbus RTU 프레임 생성기](modbus-rtu/) | 요청 프레임과 CRC 생성 |
+
+수치/기하, PLC DB, 서보/모션, 통신/코드의 4개 분류에 각각 4페이지가 있습니다. 앱의 ASCII 코드표와 입력기는 웹 한 페이지에 함께 제공합니다.
 
 ## 문제 제보
 
@@ -38,6 +42,12 @@ PLC와 자동화 실무에서 자주 사용하는 계산과 변환을 브라우�
 ## 저장소 안내
 
 이 저장소는 엔지니어 도구의 공개 소스와 GitHub Pages 배포 파일을 보유합니다.
+
+로컬 16페이지 후보는 통합 검증과 화면 QC가 남아 있으며 완료 또는 QC 통과를 의미하지 않습니다. 공개 push는 검증 결과와 정확한 커밋을 확보한 뒤 별도 승인을 받아 수행합니다.
+
+### 테마 출처
+
+테마 기준은 [PLCManJP 랜딩페이지](https://plcmanjp.github.io/)의 [소스 커밋 7f20b2e52](https://github.com/plcmanjp/plcmanjp.github.io/commit/7f20b2e52)입니다. 베이지 배경과 테라코타 강조색, 라이트/다크 전환 규칙을 웹 허브와 도구에 적용하는 후보입니다.
 
 ## 계산 라이브러리
 

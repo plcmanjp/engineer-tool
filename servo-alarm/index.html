@@ -4,7 +4,7 @@
 <meta name="theme-color" id="themeColor" content="#e9edf1">
 <link rel="icon" href="/engineer-tool/favicon.svg" type="image/svg+xml"><link rel="icon" href="/engineer-tool/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="/engineer-tool/apple-touch-icon.png">
 <title>서보 이상코드 검색 | 엔지니어 도구</title><meta name="description" content="QD75/QD77MS/RD77MS 위치결정 모듈과 MR-J4/MR-J5 서보드라이브에서 확인한 매뉴얼 기준의 기본코드와 상세코드를 오프라인 조회합니다."><meta property="og:title" content="서보 이상코드 검색 | PLCManJP 엔지니어 도구"><meta property="og:description" content="QD75/QD77MS/RD77MS 위치결정 모듈과 MR-J4/MR-J5 서보드라이브에서 확인한 매뉴얼 기준의 기본코드와 상세코드를 오프라인 조회합니다."><meta property="og:type" content="website"><meta property="og:url" content="https://plcmanjp.github.io/engineer-tool/servo-alarm/"><link rel="canonical" href="https://plcmanjp.github.io/engineer-tool/servo-alarm/">
-<script>(function(){var t="light";try{if(localStorage.getItem("plcmanjp-theme")==="dark")t="dark";}catch(e){}document.documentElement.setAttribute("data-theme",t);document.getElementById("themeColor").setAttribute("content",t==="dark"?"#10161d":"#e9edf1");})();</script>
+
 <style>
   :root {
     --bg: #e9edf1; --surface: #ffffff; --surface-2: #f3f6f9; --ink: #18222e;
@@ -71,8 +71,10 @@ canvas { background:#f3f6f9; }
 </style>
 <link rel="stylesheet" href="../assets/tool-shell.css">
 <style>button:not(.active):not(.primary):not([aria-pressed="true"]):not([aria-selected="true"]){background:var(--surface)} .toolhelp-close{min-width:44px;min-height:44px}</style>
-</head><body><div class="topbar"><div class="tw"><div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">서보 이상코드 검색</span></div><button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트"><span aria-hidden="true">&#9788;</span> <span id="themeLbl">라이트</span></button></div></div>
-<div class="wrap"><header><p class="eyebrow">엔지니어 도구</p><h1 class="page">서보 이상코드 검색</h1><p class="lede">QD75/QD77MS/RD77MS 위치결정 모듈과 MR-J4/MR-J5 서보드라이브에서 확인한 매뉴얼 기준의 기본코드와 상세코드를 오프라인 조회합니다.</p></header>
+<script src="../assets/theme-init.js"></script>
+<link rel="stylesheet" href="../assets/site-theme.css">
+</head><body><div class="topbar"><div class="tw"><div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">서보 이상코드 검색</span></div><button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.47-.04-.93-.11-1.38A7 7 0 0 1 12 3Z"/></svg><span id="themeLbl">라이트</span></button></div></div>
+<div class="wrap"><header><p class="eyebrow">엔지니어 도구</p><h1 class="page">서보 이상코드 검색</h1><p class="lede">위치결정 모듈과 서보드라이브의 이상코드와 공식 매뉴얼 출처를 확인하세요.</p></header>
 
 <!-- SERVO-ALARM:TOOL -->
 <style>
@@ -325,11 +327,6 @@ else initServoAlarm();
 
 <script>
 (function(){
- var key="plcmanjp-theme",root=document.documentElement,btn=document.getElementById("themeBtn"),label=document.getElementById("themeLbl");
- function apply(t,save){t=t==="dark"?"dark":"light";root.setAttribute("data-theme",t);label.textContent=t==="dark"?"다크":"라이트";btn.setAttribute("aria-label","테마 전환: 현재 "+label.textContent);document.getElementById("themeColor").setAttribute("content",t==="dark"?"#10161d":"#e9edf1");if(save)try{localStorage.setItem(key,t);}catch(e){}window.dispatchEvent(new Event("resize"));}
- function read(){try{return localStorage.getItem(key)==="dark"?"dark":"light";}catch(e){return root.getAttribute("data-theme")==="dark"?"dark":"light";}}
- btn.addEventListener("click",function(){apply(root.getAttribute("data-theme")==="dark"?"light":"dark",true);});
- window.addEventListener("pageshow",function(){apply(read(),false);});window.addEventListener("storage",function(e){if(e.key===key||e.key===null)apply(read(),false);});apply(root.getAttribute("data-theme"),false);
  var tabs=Array.from(document.querySelectorAll('.tabs button'));
  tabs.forEach(function(tab,index){tab.setAttribute('role','tab');tab.addEventListener('keydown',function(e){var next=e.key==='ArrowRight'?(index+1)%tabs.length:e.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:e.key==='Home'?0:e.key==='End'?tabs.length-1:null;if(next!==null){e.preventDefault();tabs[next].focus();tabs[next].click();}});});
  var err=document.getElementById('err');if(err)err.setAttribute('role','status');
@@ -341,4 +338,5 @@ else initServoAlarm();
 
 <!-- /SERVO-ALARM:HELP -->
 <script src="../assets/tool-help.js"></script>
+<script src="../assets/theme.js"></script>
 </body></html>

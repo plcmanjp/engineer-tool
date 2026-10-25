@@ -13,7 +13,7 @@
 <meta property="og:title" content="통신 코드 계산기 | PLCManJP 엔지니어 도구">
 <meta property="og:description" content="현장 엔지니어를 위한 시리얼 통신 체크섬 및 CRC-16 계산기입니다.">
 <link rel="canonical" href="https://plcmanjp.github.io/engineer-tool/comm-code/">
-<script>try{var t=localStorage.getItem("plcmanjp-theme"),old=localStorage.getItem("plcmanjp-tool-theme");if(t!=="light"&&t!=="dark"&&(old==="light"||old==="dark")){t=old;localStorage.setItem("plcmanjp-theme",t);localStorage.removeItem("plcmanjp-tool-theme");}if(t!=="light"&&t!=="dark")t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";document.documentElement.setAttribute("data-theme",t);var m=document.getElementById("themeColor");if(m)m.setAttribute("content",t==="dark"?"#10161d":"#e9edf1");}catch(e){document.documentElement.setAttribute("data-theme","light");}</script>
+
 <style>
   :root {
     color-scheme: light;
@@ -166,13 +166,15 @@
   a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
 </style>
+<script src="../assets/theme-init.js"></script>
+<link rel="stylesheet" href="../assets/site-theme.css">
 </head>
 <body>
 
 <div class="topbar">
     <div class="tw">
       <div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">통신 코드</span></div>
-      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite">🌓 <span id="themeLbl">라이트</span></button>
+      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.47-.04-.93-.11-1.38A7 7 0 0 1 12 3Z"/></svg><span id="themeLbl">라이트</span></button>
     </div>
   </div>
 
@@ -180,7 +182,7 @@
   <header>
     <p class="eyebrow">엔지니어 도구</p>
     <h1 class="page">통신 코드 계산기</h1>
-    <p class="lede">시리얼 통신(RS-232C, RS-485 등) 프레임 끝에 붙이는 <b>검사값</b>을 계산합니다. 합산, XOR, LRC 체크섬과 CRC-16(Modbus, CCITT-FALSE, XMODEM, ARC)을 지원하고, 파라미터를 직접 넣어 다른 규격에도 맞출 수 있습니다. 장비 매뉴얼의 기대 코드를 넣으면 일치 여부를 검산해 주므로 통신이 안 될 때 원인을 좁히는 데 씁니다.</p>
+    <p class="lede">체크섬과 CRC-16을 계산하거나 관측 코드에 맞는 방식을 찾으세요.</p>
   </header>
 
   <section class="device">
@@ -302,16 +304,6 @@
       </div>
     </div>
   </section>
-
-  <ul class="notes">
-
-    <li><b>이럴 때 씁니다</b>: 장비에 보낼 명령 프레임의 CRC를 직접 만들 때, 받은 프레임의 검사값이 맞는지 확인할 때, 매뉴얼 예제와 내 계산이 왜 다른지 파고들 때 씁니다.</li>
-
-    <li><b>쓰는 순서</b>: 체크섬 방식이나 CRC 종류를 고르고, HEX 또는 ASCII로 바이트열을 넣은 뒤 결과의 바이트 순서(LE, BE)를 프레임 규격에 맞춰 고릅니다.</li>
-
-    <li><b>자세한 사용법</b>: 계산기 제목 행의 <b>도움말</b> 버튼에서 전체 설명을 볼 수 있습니다.</li>
-
-  </ul>
 </div>
 
 <footer class="site">
@@ -899,48 +891,15 @@
   recompute();
 })();
 </script>
-<script>
-(function(){
-  var KEY="plcmanjp-theme", order=["light","dark"], lbl={"light":"라이트","dark":"다크"};
-  var root=document.documentElement, btn=document.getElementById("themeBtn"), lblEl=document.getElementById("themeLbl");
-  var cur=root.getAttribute("data-theme")==="dark"?"dark":"light";
-  function readTheme(){
-    try{var t=localStorage.getItem(KEY);return t==="dark"?"dark":"light";}catch(e){return root.getAttribute("data-theme")==="dark"?"dark":"light";}
-  }
-  function apply(t,save){
-    t=t==="dark"?"dark":"light"; root.setAttribute("data-theme",t);
-    cur=t;
-    if(lblEl) lblEl.textContent=lbl[t];
-    if(btn) btn.setAttribute("aria-label","테마 전환: 현재 "+lbl[t]);
-    if(save!==false)try{localStorage.setItem(KEY,t);}catch(e){}
-    var event=document.createEvent("Event"); event.initEvent("resize",false,false); window.dispatchEvent(event);
-  }
-  if(btn) btn.addEventListener("click",function(){apply(order[(order.indexOf(cur)+1)%order.length]);});
-  window.addEventListener("pageshow",function(){apply(readTheme(),false);});
-  window.addEventListener("storage",function(e){if(e.key===KEY)apply(e.newValue==="dark"?"dark":"light",false);});
-  apply(cur,false);
-})();
-</script>
+
 <dialog class="toolhelp" id="toolHelp" data-tool-help aria-labelledby="toolHelpTitle">
   <div class="toolhelp-head">
     <h3 id="toolHelpTitle">통신 코드 계산기 도움말</h3>
     <button class="toolhelp-close" id="toolHelpClose" data-tool-help-close type="button" aria-label="닫기">&times;</button>
   </div>
   <div class="toolhelp-body">
-    <h4>이 도구로 할 수 있는 일</h4>
-    <ul>
-      <li>바이트열의 <b>체크섬</b>(합산 8, 합산 16, XOR 8, LRC)을 계산합니다.</li>
-      <li><b>CRC-16</b> 4종(Modbus, CCITT-FALSE, XMODEM, ARC)을 계산합니다. <b>직접 입력</b>을 고르면 Poly, Init, XorOut, RefIn, RefOut을 손으로 맞출 수 있습니다.</li>
-      <li>결과를 <b>LE(저&rarr;고)</b>와 <b>BE(고&rarr;저)</b> 두 순서로 보여 줍니다.</li>
-      <li><b>기대 코드</b> 칸에 매뉴얼 값을 넣으면 일치하는지 검산해 줍니다.</li>
-    </ul>
-    <h4>쓰는 순서</h4>
-    <ol>
-      <li>위쪽에서 <b>체크섬 방식</b> 또는 <b>CRC 종류</b>를 고릅니다.</li>
-      <li><b>HEX</b>와 <b>ASCII</b> 중 입력 형식을 고르고 바이트열을 넣습니다. 예: <code>01 03 00 00 00 0A</code>.</li>
-      <li>프레임 규격에 맞는 <b>바이트 순서</b>(LE, BE)를 고르고 결과를 복사합니다.</li>
-      <li>확인이 필요하면 기대 코드를 넣어 검산 결과를 봅니다.</li>
-    </ol>
+    <p>시리얼 통신 프레임에 붙이는 체크섬/CRC-16을 계산하고, 맞는지 검산합니다.</p>
+    <h4>사용 방법</h4><ol><li>알고리즘을 고릅니다. 체크섬(합/XOR/LRC) 또는 CRC-16(Modbus 등)입니다.</li><li>CRC를 고르면 아래에 Poly/Init 값이 보입니다. 프리셋은 잠금, &#x27;직접 입력&#x27;을 고르면 수정할 수 있습니다.</li><li>HEX 바이트나 ASCII 문자를 입력하세요. HEX는 공백을 허용합니다. 4096바이트를 넘으면 앞부분만 계산하고 잘림을 알립니다.</li><li>결과 바이트가 나옵니다. 2바이트는 보통 낮은 바이트 먼저(LE)입니다. 기대 코드를 넣으면 일치 여부를 봅니다.</li></ol>
     <h4>체크섬 방식 찾기</h4>
     <ul>
       <li>찾기 모드에서 페이로드와 관측 코드를 입력하면 지원하는 8개 방식 중 일치하는 항목을 모두 표시합니다.</li>
@@ -948,7 +907,7 @@
       <li>일치하지 않으면 페이로드와 바이트 순서를 확인하세요. 직접 입력 CRC의 파라미터는 탐색하지 않습니다.</li>
       <li>찾기 모드에서는 잘못된 HEX, 홀수 니블과 4096바이트 초과 입력의 결과를 차단합니다. 계산 모드의 기존 경고와 검산은 유지합니다.</li>
     </ul>
-    <h4>알아두면 좋은 것</h4>
+    <h4>참고</h4>
     <ul>
       <li>체크섬, CRC는 데이터가 전송 중 <b>깨졌는지 확인하는 검사값</b>입니다. 암호가 아닙니다.</li>
       <li><b>LE</b>는 저바이트를 먼저 보내는 Modbus RTU 전송 순서이고, WORD 표시는 고&rarr;저입니다.</li>
@@ -958,5 +917,6 @@
   </div>
 </dialog>
 <script src="../assets/tool-help.js"></script>
+<script src="../assets/theme.js"></script>
 </body>
 </html>

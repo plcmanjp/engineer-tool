@@ -13,7 +13,7 @@
 <meta property="og:title" content="원둘레 계산기 | PLCManJP 엔지니어 도구">
 <meta property="og:description" content="현장 엔지니어를 위한 원둘레 및 기어 피치원(PCD) 계산기입니다.">
 <link rel="canonical" href="https://plcmanjp.github.io/engineer-tool/circumference/">
-<script>try{var t=localStorage.getItem("plcmanjp-theme"),old=localStorage.getItem("plcmanjp-tool-theme");if(t!=="light"&&t!=="dark"&&(old==="light"||old==="dark")){t=old;localStorage.setItem("plcmanjp-theme",t);localStorage.removeItem("plcmanjp-tool-theme");}if(t!=="light"&&t!=="dark")t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";document.documentElement.setAttribute("data-theme",t);var m=document.getElementById("themeColor");if(m)m.setAttribute("content",t==="dark"?"#10161d":"#e9edf1");}catch(e){document.documentElement.setAttribute("data-theme","light");}</script>
+
 <style>
   :root {
     color-scheme: light;
@@ -96,12 +96,14 @@
   a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
 </style>
+<script src="../assets/theme-init.js"></script>
+<link rel="stylesheet" href="../assets/site-theme.css">
 </head>
 <body>
   <div class="topbar">
     <div class="tw">
       <div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">원둘레 계산기</span></div>
-      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite">🌓 <span id="themeLbl">라이트</span></button>
+      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.47-.04-.93-.11-1.38A7 7 0 0 1 12 3Z"/></svg><span id="themeLbl">라이트</span></button>
     </div>
   </div>
 
@@ -109,7 +111,7 @@
     <header>
       <p class="eyebrow">엔지니어 도구</p>
       <h1 class="page">원둘레 계산기</h1>
-      <p class="lede">지름, 반지름, 원주, 면적 중 <b>아는 값 하나만</b> 넣으면 나머지 셋이 즉시 나옵니다. 롤러가 한 바퀴에 얼마나 보내는지, 턴테이블 원주가 얼마인지 확인할 때 씁니다. PCD(기어) 탭에서는 모듈과 잇수로 피치원 지름을 구합니다.</p>
+      <p class="lede">지름, 반지름, 원주와 면적을 상호 계산하고 기어의 PCD를 구하세요.</p>
     </header>
 
     <section class="device">
@@ -122,7 +124,7 @@
       <div class="screen">
         <!-- ── 탭0: 원둘레 ── -->
         <div id="panelCirc">
-          <p class="hint0">하나의 값을 입력하면 나머지 3개가 자동 산출됩니다 (mm / mm&sup2;)</p>
+          <p class="hint0">값 하나로 나머지 3개를 계산합니다 (mm / mm²).</p>
 
           <div class="zone green">
             <div class="zone-head"><span class="h"><span>&#9670;</span><span>원 도식</span></span></div>
@@ -172,7 +174,7 @@
 
         <!-- ── 탭1: PCD(기어) ── -->
         <div id="panelPcd" hidden>
-          <p class="hint0">모듈(m)과 잇수(z)를 입력하면 피치원 지름(PCD)이 자동 산출됩니다 (단방향, 역산 없음)</p>
+          <p class="hint0">모듈(m)과 잇수(z)로 PCD를 계산합니다. 역산은 지원하지 않습니다.</p>
 
           <div class="zone green">
             <div class="zone-head"><span class="h"><span>&#9670;</span><span>기어 도식</span></span></div>
@@ -202,16 +204,6 @@
         </div>
       </div>
     </section>
-
-    <ul class="notes">
-
-      <li><b>이럴 때 씁니다</b>: 롤러 지름으로 1회전 이송량을 구할 때, 원주를 재서 지름을 거꾸로 알아낼 때, 기어 모듈과 잇수로 피치원 지름(PCD)을 구할 때 씁니다.</li>
-
-      <li><b>쓰는 순서</b>: 네 칸 중 아는 값 한 곳에 숫자를 넣으면 나머지 세 칸과 오른쪽 도식이 함께 바뀝니다.</li>
-
-      <li><b>자세한 사용법</b>: 계산기 제목 행의 <b>도움말</b> 버튼에서 전체 설명을 볼 수 있습니다.</li>
-
-    </ul>
   </div>
 
   <footer class="site">
@@ -583,47 +575,16 @@
 })();
 </script>
 
-<script>
-(function(){
-  var KEY="plcmanjp-theme", order=["light","dark"], lbl={"light":"라이트","dark":"다크"};
-  var root=document.documentElement, btn=document.getElementById("themeBtn"), lblEl=document.getElementById("themeLbl");
-  var cur=root.getAttribute("data-theme")==="dark"?"dark":"light";
-  function readTheme(){
-    try{var t=localStorage.getItem(KEY);return t==="dark"?"dark":"light";}catch(e){return root.getAttribute("data-theme")==="dark"?"dark":"light";}
-  }
-  function apply(t,save){
-    t=t==="dark"?"dark":"light"; root.setAttribute("data-theme",t);
-    cur=t;
-    if(lblEl) lblEl.textContent=lbl[t];
-    if(btn) btn.setAttribute("aria-label","테마 전환: 현재 "+lbl[t]);
-    if(save!==false)try{localStorage.setItem(KEY,t);}catch(e){}
-    var event=document.createEvent("Event"); event.initEvent("resize",false,false); window.dispatchEvent(event);
-  }
-  if(btn) btn.addEventListener("click",function(){apply(order[(order.indexOf(cur)+1)%order.length]);});
-  window.addEventListener("pageshow",function(){apply(readTheme(),false);});
-  window.addEventListener("storage",function(e){if(e.key===KEY)apply(e.newValue==="dark"?"dark":"light",false);});
-  apply(cur,false);
-})();
-</script>
+
 <dialog class="toolhelp" id="toolHelp" data-tool-help aria-labelledby="toolHelpTitle">
   <div class="toolhelp-head">
     <h3 id="toolHelpTitle">원둘레 계산기 도움말</h3>
     <button class="toolhelp-close" id="toolHelpClose" data-tool-help-close type="button" aria-label="닫기">&times;</button>
   </div>
   <div class="toolhelp-body">
-    <h4>이 도구로 할 수 있는 일</h4>
-    <ul>
-      <li>지름(d), 반지름(r), 원주(C), 면적(A) 중 하나를 넣으면 나머지 셋을 바로 구합니다. 어느 칸에 넣어도 됩니다.</li>
-      <li><b>PCD(기어)</b> 탭에서 모듈(m)과 잇수(z)로 피치원 지름을 구합니다.</li>
-      <li>값 옆의 복사 버튼으로 결과를 그대로 가져갈 수 있습니다.</li>
-    </ul>
-    <h4>쓰는 순서</h4>
-    <ol>
-      <li>아는 값 한 칸에 숫자를 넣습니다. 나머지 세 칸이 즉시 채워집니다.</li>
-      <li>오른쪽 도식으로 지금 값이 어떤 크기인지 확인합니다.</li>
-      <li>기어 피치원이 필요하면 <b>PCD(기어)</b> 탭으로 옮겨 모듈과 잇수를 넣습니다.</li>
-    </ol>
-    <h4>알아두면 좋은 것</h4>
+    <p>지름, 반지름, 원주, 면적을 상호 계산합니다 (mm / mm²). PCD 탭도 제공합니다.</p>
+    <h4>사용 방법</h4><ol><li>원둘레 탭에서 네 칸 중 하나에 숫자를 넣습니다.</li><li>나머지 세 칸이 바로 채워집니다.</li><li>PCD 탭에서는 모듈(m)과 잇수(z)를 넣으면 피치원 지름이 나옵니다.</li></ol>
+    <h4>참고</h4>
     <ul>
       <li>길이는 <b>mm</b>, 면적은 <b>mm&sup2;</b>로 계산합니다. 0 이하는 입력 오류로 처리합니다.</li>
       <li>쓰는 공식은 <code>C = &pi; &times; d</code>, <code>A = &pi; &times; r&sup2;</code>입니다.</li>
@@ -632,5 +593,6 @@
   </div>
 </dialog>
 <script src="../assets/tool-help.js"></script>
+<script src="../assets/theme.js"></script>
 </body>
 </html>

@@ -13,7 +13,7 @@
 <meta property="og:title" content="아날로그 스케일 변환 | PLCManJP 엔지니어 도구">
 <meta property="og:description" content="현장 엔지니어를 위한 아날로그 센서 ↔ 공학단위 스케일 변환기입니다.">
 <link rel="canonical" href="https://plcmanjp.github.io/engineer-tool/analog-scale/">
-<script>try{var t=localStorage.getItem("plcmanjp-theme"),old=localStorage.getItem("plcmanjp-tool-theme");if(t!=="light"&&t!=="dark"&&(old==="light"||old==="dark")){t=old;localStorage.setItem("plcmanjp-theme",t);localStorage.removeItem("plcmanjp-tool-theme");}if(t!=="light"&&t!=="dark")t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";document.documentElement.setAttribute("data-theme",t);var m=document.getElementById("themeColor");if(m)m.setAttribute("content",t==="dark"?"#10161d":"#e9edf1");}catch(e){document.documentElement.setAttribute("data-theme","light");}</script>
+
 <style>
   :root {
     color-scheme: light;
@@ -110,12 +110,14 @@
   a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
 </style>
+<script src="../assets/theme-init.js"></script>
+<link rel="stylesheet" href="../assets/site-theme.css">
 </head>
 <body>
   <div class="topbar">
     <div class="tw">
       <div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">아날로그 스케일 변환</span></div>
-      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite">🌓 <span id="themeLbl">라이트</span></button>
+      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.47-.04-.93-.11-1.38A7 7 0 0 1 12 3Z"/></svg><span id="themeLbl">라이트</span></button>
     </div>
   </div>
 
@@ -123,7 +125,7 @@
   <header>
     <p class="eyebrow">엔지니어 도구</p>
     <h1 class="page">아날로그 스케일 변환</h1>
-    <p class="lede">센서가 보내는 4~20mA, 0~10V 신호, PLC가 읽는 디지털 카운트, 사람이 보는 실제 단위(&#8451;, kPa 등)를 서로 환산합니다. 기준 범위를 한 번 넣어 두면 현재값 PV를 바꿀 때마다 나머지가 즉시 따라오고, 아래 <b>전달 특성 그래프</b>를 좌우로 끌어 전 구간이 어떻게 대응되는지 눈으로 확인할 수 있습니다. A/D 입력과 D/A 출력 양방향을 지원합니다.</p>
+    <p class="lede">PLC 카운트, mA/V 신호와 공학값을 A/D, D/A 방향으로 환산하세요.</p>
   </header>
 
   <section class="device">
@@ -133,7 +135,7 @@
       <button class="tab" role="tab" id="tab-da" aria-selected="false">D/A 출력</button>
     </div>
     <div class="screen">
-      <p class="hint0">분해능(디지털 값)을 기준으로 대응 신호와 공학값을 동시에 환산합니다.</p>
+      <p class="hint0">디지털 값으로 대응 신호와 공학값을 환산합니다.</p>
 
       <!-- 1) 기준축(입력값) 파라미터 -->
       <div class="zone input">
@@ -172,16 +174,6 @@
       </div>
     </div>
   </section>
-
-  <ul class="notes">
-
-    <li><b>이럴 때 씁니다</b>: 압력 센서가 4~20mA를 보내는데 PLC 카운트가 <b>1638</b>일 때 실제 몇 kPa인지 확인할 때, 반대로 인버터에 50Hz를 내보내려면 D/A 카운트를 얼마로 써야 하는지 역산할 때 씁니다.</li>
-
-    <li><b>쓰는 순서</b>: A/D인지 D/A인지 고르고, 분해능(카운트) 범위와 변환값(공학단위) 범위를 넣은 뒤 현재값 PV를 입력합니다.</li>
-
-    <li><b>자세한 사용법</b>: 계산기 제목 행의 <b>도움말</b> 버튼에서 전체 설명을 볼 수 있습니다.</li>
-
-  </ul>
 </div>
 
   <footer class="site">
@@ -424,50 +416,16 @@
 })();
 </script>
 
-<script>
-(function(){
-  var KEY="plcmanjp-theme", order=["light","dark"], lbl={"light":"라이트","dark":"다크"};
-  var root=document.documentElement, btn=document.getElementById("themeBtn"), lblEl=document.getElementById("themeLbl");
-  var cur=root.getAttribute("data-theme")==="dark"?"dark":"light";
-  function readTheme(){
-    try{var t=localStorage.getItem(KEY);return t==="dark"?"dark":"light";}catch(e){return root.getAttribute("data-theme")==="dark"?"dark":"light";}
-  }
-  function apply(t,save){
-    t=t==="dark"?"dark":"light"; root.setAttribute("data-theme",t);
-    cur=t;
-    if(lblEl) lblEl.textContent=lbl[t];
-    if(btn) btn.setAttribute("aria-label","테마 전환: 현재 "+lbl[t]);
-    if(save!==false)try{localStorage.setItem(KEY,t);}catch(e){}
-    var event=document.createEvent("Event"); event.initEvent("resize",false,false); window.dispatchEvent(event);
-  }
-  if(btn) btn.addEventListener("click",function(){apply(order[(order.indexOf(cur)+1)%order.length]);});
-  window.addEventListener("pageshow",function(){apply(readTheme(),false);});
-  window.addEventListener("storage",function(e){if(e.key===KEY)apply(e.newValue==="dark"?"dark":"light",false);});
-  apply(cur,false);
-})();
-</script>
+
 <dialog class="toolhelp" id="toolHelp" data-tool-help aria-labelledby="toolHelpTitle">
   <div class="toolhelp-head">
     <h3 id="toolHelpTitle">아날로그 스케일 변환 도움말</h3>
     <button class="toolhelp-close" id="toolHelpClose" data-tool-help-close type="button" aria-label="닫기">&times;</button>
   </div>
   <div class="toolhelp-body">
-    <h4>이 도구로 할 수 있는 일</h4>
-    <ul>
-      <li>센서 신호(4~20mA, 0~10V)와 PLC 디지털 카운트, 실제 공학 단위 사이를 <b>직선 비례</b>로 환산합니다.</li>
-      <li><b>A/D 입력</b> 탭: 센서에서 들어온 카운트가 실제로 몇 도, 몇 kPa인지 확인합니다.</li>
-      <li><b>D/A 출력</b> 탭: 내보내고 싶은 공학값이 카운트로 얼마인지 거꾸로 구합니다.</li>
-      <li><b>전달 특성 그래프</b>를 좌우로 끌면 PV가 따라 움직여, 전 구간의 대응 관계를 한눈에 볼 수 있습니다.</li>
-    </ul>
-    <h4>쓰는 순서</h4>
-    <ol>
-      <li>위 탭에서 <b>A/D 입력</b>인지 <b>D/A 출력</b>인지 고릅니다.</li>
-      <li><b>분해능</b>(카운트) 범위를 프리셋에서 고르거나 직접 넣습니다. 예: 0~4000, -16000~16000.</li>
-      <li>전압, 전류도 함께 보려면 <b>신호 사용</b>을 켜고 4~20mA 같은 범위를 넣습니다.</li>
-      <li><b>변환값</b> MIN, MAX와 단위를 넣습니다. 예: 0~100, &#8451;.</li>
-      <li><b>현재값 PV</b>를 넣으면 나머지 값과 변환식이 즉시 계산됩니다.</li>
-    </ol>
-    <h4>알아두면 좋은 것</h4>
+    <p>A/D, D/A 값을 공학값으로 환산합니다. mA/V 신호는 선택 입력입니다.</p>
+    <h4>사용 방법</h4><ol><li>위 탭에서 A/D 입력 또는 D/A 출력을 고릅니다.</li><li>분해능(카운트) MIN/MAX와 변환값 MIN/MAX를 맞춥니다. 프리셋을 쓰면 빠릅니다.</li><li>&#x27;현재값 PV&#x27;에 지금 숫자를 넣으면 아래 변환 결과가 나옵니다.</li><li>신호(mA/V)가 필요하면 &#x27;신호 사용&#x27;을 켠 뒤 전류/전압을 고릅니다. 범위를 벗어나면 경고가 뜹니다.</li></ol>
+    <h4>참고</h4>
     <ul>
       <li>설정한 MIN~MAX <b>밖의 값</b>도 직선을 연장해 계산하고, 범위를 벗어났다고 경고를 함께 표시합니다.</li>
       <li>단위는 직접 입력하거나 kPa, MPa, bar, psi, torr, &micro;m, mm, m 프리셋에서 고를 수 있습니다.</li>
@@ -476,5 +434,6 @@
   </div>
 </dialog>
 <script src="../assets/tool-help.js"></script>
+<script src="../assets/theme.js"></script>
 </body>
 </html>

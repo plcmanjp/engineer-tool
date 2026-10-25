@@ -13,7 +13,7 @@
 <meta property="og:title" content="전자기어비 계산기 | PLCManJP 엔지니어 도구">
 <meta property="og:description" content="현장 엔지니어를 위한 서보 전자기어비 계산기입니다.">
 <link rel="canonical" href="https://plcmanjp.github.io/engineer-tool/gear-ratio/">
-<script>try{var t=localStorage.getItem("plcmanjp-theme"),old=localStorage.getItem("plcmanjp-tool-theme");if(t!=="light"&&t!=="dark"&&(old==="light"||old==="dark")){t=old;localStorage.setItem("plcmanjp-theme",t);localStorage.removeItem("plcmanjp-tool-theme");}if(t!=="light"&&t!=="dark")t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";document.documentElement.setAttribute("data-theme",t);var m=document.getElementById("themeColor");if(m)m.setAttribute("content",t==="dark"?"#10161d":"#e9edf1");}catch(e){document.documentElement.setAttribute("data-theme","light");}</script>
+
 <style>
   :root {
     color-scheme: light;
@@ -130,12 +130,14 @@
   a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
 </style>
+<script src="../assets/theme-init.js"></script>
+<link rel="stylesheet" href="../assets/site-theme.css">
 </head>
 <body>
   <div class="topbar">
     <div class="tw">
       <div class="crumb"><a href="/">PLCManJP</a><span class="sep">/</span><a href="../">엔지니어 도구</a><span class="sep">/</span><span class="cur">전자기어비 계산기</span></div>
-      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite">🌓 <span id="themeLbl">라이트</span></button>
+      <button class="themebtn" id="themeBtn" type="button" aria-label="테마 전환: 현재 라이트" aria-live="polite"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.47-.04-.93-.11-1.38A7 7 0 0 1 12 3Z"/></svg><span id="themeLbl">라이트</span></button>
     </div>
   </div>
 
@@ -143,7 +145,7 @@
   <header>
     <p class="eyebrow">엔지니어 도구</p>
     <h1 class="page">전자기어비 계산기</h1>
-    <p class="lede">서보 모터의 전자기어비 파라미터 <b>CMX(PA06), CDV(PA07)</b>를 구합니다. 서보 시리즈와 기구 제원(볼스크류 리드 또는 회전 분할수), 지령 단위를 넣으면 약분된 기약분수로 바로 나옵니다. 목표 속도를 QD75/RD75/FX 위치결정 모듈이 실제로 낼 수 있는지도 함께 판정해서, 셋업 전에 파라미터와 속도를 한 번에 확인할 수 있습니다.</p>
+    <p class="lede">서보 전자기어비 CMX/CDV를 계산하고 위치결정 모듈의 속도 한계를 확인하세요.</p>
   </header>
 
   <section class="device">
@@ -317,16 +319,6 @@
       </div>
     </div>
   </section>
-
-  <ul class="notes">
-
-    <li><b>이럴 때 씁니다</b>: 새 축을 셋업하며 CMX/CDV를 정할 때, 지령 1펄스에 <b>0.001mm</b>씩 움직이게 맞출 때, 목표 속도가 위치결정 모듈의 펄스 출력 한계를 넘는지 미리 확인할 때 씁니다.</li>
-
-    <li><b>쓰는 순서</b>: 서보 시리즈와 기구 유형을 고르고, 리드나 분할수, 지령 단위, 감속비를 넣으면 CMX/CDV가 즉시 나옵니다.</li>
-
-    <li><b>자세한 사용법</b>: 계산기 제목 행의 <b>도움말</b> 버튼에서 전체 설명을 볼 수 있습니다. 각 입력 항목 옆의 <b>?</b> 버튼에는 그 항목만의 설명이 따로 있습니다.</li>
-
-  </ul>
   </div>
 
   <footer class="site">
@@ -383,30 +375,13 @@
   var HELP = {
     cmd: {
       title: "지령 단위란?",
-      body: "지령 단위 = 지령 펄스 1개가 일으키는 실제 기계 이동량입니다.\n\n" +
-        "- 1 μm/pulse로 정하면 1펄스 = 1μm 이동(1mm 가려면 1000펄스).\n" +
-        "- 설계자가 필요한 위치 분해능에 따라 선택합니다.\n" +
-        "- 전자기어(CMX/CDV)는 '1펄스 = 1 지령단위'가 정확히 성립하도록 펄스를 변환합니다.\n\n" +
-        "관계: 지령단위 = ΔL ÷ Ap (1회전당 이동량 ÷ 1회전당 펄스 수).\n" +
-        "예) 리드 10mm, 인코더 4,194,304, 지령단위 1μm → 1회전에 10,000펄스(Ap), 전자기어 262144/625.\n\n" +
-        "※ '분해능'(인코더 1펄스당 이동량)과 다릅니다. 지령단위는 명령 단위, 분해능은 인코더가 낼 수 있는 물리적 최소."
-    },
+      body: "지령 단위는 지령 1펄스당 이동량이며, 필요한 위치 정밀도에 맞춰 선택합니다. 전자기어(CMX/CDV)가 이 단위에 맞게 펄스를 변환합니다.\n\n지령 단위 = ΔL ÷ Ap (1회전당 이동량 ÷ 지령 펄스 수)입니다.\n예: 1 μm/pulse이면 1 mm에 1000펄스가 필요합니다. 리드 10 mm, 인코더 4,194,304이면 Ap는 10,000펄스/회전, 전자기어는 262144/625입니다.\n\n인코더 1펄스당 이동량인 분해능과는 다릅니다."},
     reduction: {
       title: "감속비 입력",
-      body: "감속기의 감속비를 입력합니다.\n\n" +
-        "- 출력: 감속기 출력측 회전수\n" +
-        "- 모터: 모터측 회전수\n\n" +
-        "보통 1/3, 1/5, 1/7처럼 표기합니다. 예) 1/5 감속기 → 출력 1 / 모터 5 (모터 5회전에 출력 1회전).\n\n" +
-        "감속기가 없으면 1 / 1."
-    },
+      body: "출력측과 모터측 회전수의 비를 입력하세요.\n예: 1/5 감속기는 출력 1 / 모터 5입니다 (모터 5회전에 출력 1회전).\n감속기가 없으면 1 / 1을 입력하세요."},
     gear: {
       title: "기어비 입력 (잇수)",
-      body: "기어/풀리 단의 잇수를 그대로 입력합니다.\n\n" +
-        "- 구동 잇수: 감속기 출력측 기어/풀리\n" +
-        "- 부하 잇수: 부하측 기어/풀리\n\n" +
-        "잇수가 많은 쪽이 느리게 돕니다(감속). 예) 구동 20, 부하 40 → 부하가 1/2 속도(2:1 감속).\n\n" +
-        "회전수가 아니라 잇수를 넣습니다."
-    }
+      body: "회전수가 아닌 기어/풀리 잇수를 입력하세요.\n구동: 감속기 출력측, 부하: 부하측입니다.\n예: 구동 20, 부하 40이면 부하 속도는 1/2입니다 (2:1 감속)."}
   };
 
   // ── 엘리먼트 참조 ──
@@ -818,50 +793,16 @@
 })();
 </script>
 
-<script>
-(function(){
-  var KEY="plcmanjp-theme", order=["light","dark"], lbl={"light":"라이트","dark":"다크"};
-  var root=document.documentElement, btn=document.getElementById("themeBtn"), lblEl=document.getElementById("themeLbl");
-  var cur=root.getAttribute("data-theme")==="dark"?"dark":"light";
-  function readTheme(){
-    try{var t=localStorage.getItem(KEY);return t==="dark"?"dark":"light";}catch(e){return root.getAttribute("data-theme")==="dark"?"dark":"light";}
-  }
-  function apply(t,save){
-    t=t==="dark"?"dark":"light"; root.setAttribute("data-theme",t);
-    cur=t;
-    if(lblEl) lblEl.textContent=lbl[t];
-    if(btn) btn.setAttribute("aria-label","테마 전환: 현재 "+lbl[t]);
-    if(save!==false)try{localStorage.setItem(KEY,t);}catch(e){}
-    var event=document.createEvent("Event"); event.initEvent("resize",false,false); window.dispatchEvent(event);
-  }
-  if(btn) btn.addEventListener("click",function(){apply(order[(order.indexOf(cur)+1)%order.length]);});
-  window.addEventListener("pageshow",function(){apply(readTheme(),false);});
-  window.addEventListener("storage",function(e){if(e.key===KEY)apply(e.newValue==="dark"?"dark":"light",false);});
-  apply(cur,false);
-})();
-</script>
+
 <dialog class="toolhelp" id="toolHelp" data-tool-help aria-labelledby="toolHelpTitle">
   <div class="toolhelp-head">
     <h3 id="toolHelpTitle">전자기어비 계산기 도움말</h3>
     <button class="toolhelp-close" id="toolHelpClose" data-tool-help-close type="button" aria-label="닫기">&times;</button>
   </div>
   <div class="toolhelp-body">
-    <h4>이 도구로 할 수 있는 일</h4>
-    <ul>
-      <li>전자기어비 파라미터 <b>CMX(PA06), CDV(PA07)</b>를 최대공약수로 약분한 기약분수로 구합니다.</li>
-      <li>지령 1펄스에 기계가 얼마나 움직일지(<b>지령 단위</b>)를 정하면 거기에 맞는 값을 계산합니다.</li>
-      <li>목표 속도를 <b>QD75/RD75/FX</b> 위치결정 모듈이 낼 수 있는지 모듈별로 판정합니다.</li>
-      <li>결과가 서보 시리즈의 파라미터 상한을 넘으면 <b>범위 초과</b>로 알려 줍니다.</li>
-    </ul>
-    <h4>쓰는 순서</h4>
-    <ol>
-      <li><b>서보 시리즈</b>를 고릅니다. 인코더 분해능이 자동으로 들어갑니다(수동을 고르면 직접 입력).</li>
-      <li><b>기구 유형</b>을 고르고 볼스크류 리드 또는 회전 테이블 분할수를 넣습니다.</li>
-      <li><b>지령 단위</b> 또는 1회전당 펄스 수를 넣습니다.</li>
-      <li>감속기, 기어가 있으면 <b>감속비</b>와 <b>기어비</b>를 넣습니다. 없으면 1/1 그대로 둡니다.</li>
-      <li>나온 CMX, CDV를 복사해 서보 파라미터에 씁니다.</li>
-    </ol>
-    <h4>알아두면 좋은 것</h4>
+    <p>미쓰비시 서보(MR-J)의 전자기어 값 CMX/CDV를 계산합니다. 파라미터 번호는 PA06/PA07입니다.</p>
+    <h4>사용 방법</h4><ol><li>서보 시리즈(J2S~J5)와 기구(볼스크류/회전)를 고릅니다. 시리즈를 고르면 인코더 값이 채워집니다.</li><li>리드(mm), 지령 단위, 감속비를 입력합니다.</li><li>CMX/CDV를 확인하고 복사하세요. 목표 속도를 입력하면 QD75/RD75/FX 출력 가능 여부를 판정합니다. 파라미터 상한 초과도 표시합니다.</li></ol>
+    <h4>참고</h4>
     <ul>
       <li>공식은 <code>CMX/CDV = (인코더 분해능 &times; 지령 단위 &times; 모터측 비) &divide; (부하 이동량 &times; 부하측 비)</code>입니다.</li>
       <li><b>볼스크류, 회전 테이블</b>만 정확한 유리수로 계산합니다. 원주율(&pi;)이 들어가는 벨트, 풀리, 컨베이어, 랙&amp;피니언은 지원하지 않습니다.</li>
@@ -871,5 +812,6 @@
   </div>
 </dialog>
 <script src="../assets/tool-help.js"></script>
+<script src="../assets/theme.js"></script>
 </body>
 </html>
