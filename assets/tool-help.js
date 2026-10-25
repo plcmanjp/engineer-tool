@@ -15,7 +15,8 @@
       dialog.dataset.toolHelpBound = "true";
 
       var opener = null;
-      var closeButton = dialog.querySelector("[data-tool-help-close]");
+      var closeButtons = dialog.querySelectorAll("[data-tool-help-close]");
+      var closeButton = closeButtons[0];
 
       function openHelp(trigger) {
         opener = trigger;
@@ -35,7 +36,9 @@
         trigger.addEventListener("click", function () { openHelp(trigger); });
       });
 
-      if (closeButton) closeButton.addEventListener("click", closeHelp);
+      closeButtons.forEach(function (button) {
+        button.addEventListener("click", closeHelp);
+      });
       dialog.addEventListener("cancel", function (event) {
         event.preventDefault();
         closeHelp();
