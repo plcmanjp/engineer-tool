@@ -61,8 +61,9 @@
   .zone.lamp .zone-head { color: var(--good); }
 
   /* 폭 5단 세그먼트 */
-  .widthseg { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
-  .widthseg button { appearance: none; border: 0; border-radius: 8px; background: var(--primary-soft); color: var(--primary); font-family: var(--sans); font-size: 11px; font-weight: 700; height: 34px; cursor: pointer; padding: 0; }
+  .scrollrow { min-width: 0; overflow-x: auto; }
+  .widthseg { display: grid; width: max-content; min-width: 100%; grid-template-columns: repeat(5, minmax(max-content, 1fr)); gap: 5px; }
+  .widthseg button { appearance: none; border: 0; border-radius: 8px; background: var(--primary-soft); color: var(--primary); font-family: var(--sans); font-size: 11px; font-weight: 700; min-height: 34px; cursor: pointer; padding: 0 6px; white-space: nowrap; }
   .widthseg button[aria-pressed="true"] { background: var(--primary); color: #fff; font-weight: 800; }
 
   /* 4진법 라인 */
@@ -81,8 +82,8 @@
   .lampblock:last-child { margin-bottom: 0; }
 
   /* 변환·표시 제어 5키 1행 */
-  .controlrow { display: grid; grid-template-columns: 1.35fr 1.35fr .9fr .9fr .9fr; gap: 3px; }
-  .controlrow button { min-width: 0; height: 34px; border-radius: 7px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-family: var(--sans); font-size: 10.5px; font-weight: 700; cursor: pointer; padding: 0 2px; white-space: nowrap; overflow: hidden; }
+  .controlrow { display: grid; width: max-content; min-width: 100%; grid-template-columns: repeat(2, minmax(max-content, 1.35fr)) repeat(3, minmax(max-content, .9fr)); gap: 3px; }
+  .controlrow button { min-height: 34px; border-radius: 7px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-family: var(--sans); font-size: 10.5px; font-weight: 700; cursor: pointer; padding: 0 2px; white-space: nowrap; }
   .controlrow button.active { border-color: transparent; background: var(--primary-soft); color: var(--primary); }
 
   /* 비트연산 8키 1행 */
@@ -141,13 +142,13 @@
     <div class="screen">
       <div class="sticky-top">
         <!-- 폭 5단 세그먼트 -->
-        <div class="widthseg" id="widthSeg">
+        <div class="scrollrow"><div class="widthseg" id="widthSeg">
           <button type="button" data-width="NIBBLE4">4bit</button>
           <button type="button" data-width="BYTE8">8bit</button>
           <button type="button" data-width="WORD16">WORD</button>
           <button type="button" data-width="DWORD32">DWORD</button>
           <button type="button" data-width="QWORD64">QWORD</button>
-        </div>
+        </div></div>
 
         <!-- 4진법 라인 (H/K/O/B) -->
         <div class="zone radix">
@@ -162,13 +163,13 @@
       </div>
 
       <!-- 변환·표시 제어 5키 -->
-      <div class="controlrow">
+      <div class="scrollrow"><div class="controlrow">
         <button type="button" id="binToBcdBtn">BIN &rarr; BCD</button>
         <button type="button" id="bcdToBinBtn">BCD &rarr; BIN</button>
         <button id="chipSigned" type="button">부호</button>
         <button id="chipGroup" type="button">그룹</button>
         <button id="chipSwap" type="button">스왑</button>
-      </div>
+      </div></div>
 
       <!-- 비트연산 8키 -->
       <div class="oprow">
